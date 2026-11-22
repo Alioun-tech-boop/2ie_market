@@ -6,8 +6,9 @@ services:
     plan: free
     branch: main
     buildCommand: npm ci && npm run prisma:generate && npm run build -w @2ie/api
-    preDeployCommand: npm run prisma:deploy
-    startCommand: npm run start -w @2ie/api
+    # Le plan gratuit ne prend pas en charge preDeployCommand. L'instance
+    # unique applique donc les migrations avant de démarrer l'API.
+    startCommand: npm run prisma:deploy && npm run start -w @2ie/api
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
