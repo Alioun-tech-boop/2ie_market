@@ -1,10 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "npm run build --workspace=@2ie/web"
   publish = "apps/web/dist"
 
 [build.environment]
   NODE_VERSION = "22"
-  NPM_FLAGS = "--include=dev"
 
 # React + TanStack Router: serve index.html for client-side routes.
 [[redirects]]
