@@ -1,0 +1,251 @@
+{
+  "run": "mwr7ad5h",
+  "api": "http://127.0.0.1:3100",
+  "startedAt": "2026-11-22T02:11:16.757Z",
+  "total": 59,
+  "passed": 54,
+  "failed": 5,
+  "results": [
+    {
+      "name": "Santé de l’API",
+      "status": "PASS"
+    },
+    {
+      "name": "Préparation d’un second administrateur (fixture base)",
+      "status": "PASS"
+    },
+    {
+      "name": "Accès admin sans session refusé (401)",
+      "status": "PASS"
+    },
+    {
+      "name": "Inscription client réelle",
+      "status": "PASS"
+    },
+    {
+      "name": "Inscription commerçant 1 avec boutique",
+      "status": "PASS"
+    },
+    {
+      "name": "Inscription commerçant 2 avec boutique",
+      "status": "PASS"
+    },
+    {
+      "name": "Connexion administrateur et cookies de session",
+      "status": "PASS"
+    },
+    {
+      "name": "Session courante et déconnexion",
+      "status": "PASS"
+    },
+    {
+      "name": "Modification du profil",
+      "status": "PASS"
+    },
+    {
+      "name": "Enregistrement de la localisation",
+      "status": "PASS"
+    },
+    {
+      "name": "Modification de la boutique",
+      "status": "PASS"
+    },
+    {
+      "name": "Chargement des catégories publiques",
+      "status": "PASS"
+    },
+    {
+      "name": "Publication d’un produit avec image réelle",
+      "status": "PASS"
+    },
+    {
+      "name": "Publication d’un service",
+      "status": "PASS"
+    },
+    {
+      "name": "Publication du produit du second commerçant",
+      "status": "PASS"
+    },
+    {
+      "name": "Recherche par mot-clé",
+      "status": "PASS"
+    },
+    {
+      "name": "Recherche par site et filtre de prix",
+      "status": "PASS"
+    },
+    {
+      "name": "Détail public d’une annonce",
+      "status": "PASS"
+    },
+    {
+      "name": "Ajout au panier multi-boutiques",
+      "status": "PASS"
+    },
+    {
+      "name": "Note de panier par boutique",
+      "status": "PASS"
+    },
+    {
+      "name": "Commande et répartition multi-commerçants",
+      "status": "PASS"
+    },
+    {
+      "name": "Stock décrémenté après commande",
+      "status": "PASS"
+    },
+    {
+      "name": "Panier vidé après commande",
+      "status": "PASS"
+    },
+    {
+      "name": "Notifications client et commerçants",
+      "status": "PASS"
+    },
+    {
+      "name": "Tableau de bord marchand et commande visible",
+      "status": "PASS"
+    },
+    {
+      "name": "Consultation de la commande par le client",
+      "status": "PASS"
+    },
+    {
+      "name": "Modification du statut de commande par le commerçant",
+      "status": "PASS"
+    },
+    {
+      "name": "Notification de changement de statut",
+      "status": "PASS"
+    },
+    {
+      "name": "Refus d’une commande et restauration du stock",
+      "status": "FAIL",
+      "error": "stock restauré attendu après refus\n\n1 !== 2\n"
+    },
+    {
+      "name": "Un client ne peut pas publier une annonce (403)",
+      "status": "PASS"
+    },
+    {
+      "name": "Un commerçant ne peut pas modifier l’annonce d’un autre (404)",
+      "status": "PASS"
+    },
+    {
+      "name": "Un commerçant ne peut pas modifier la commande d’un autre (404)",
+      "status": "PASS"
+    },
+    {
+      "name": "Un utilisateur ne peut pas lire la commande d’un autre (404)",
+      "status": "PASS"
+    },
+    {
+      "name": "Escalade de privilèges par le profil refusée (400)",
+      "status": "PASS"
+    },
+    {
+      "name": "Inscription avec rôle ADMIN refusée (400)",
+      "status": "PASS"
+    },
+    {
+      "name": "Auto-modification du rôle admin refusée (400)",
+      "status": "PASS"
+    },
+    {
+      "name": "Auto-suspension administrateur refusée (400)",
+      "status": "PASS"
+    },
+    {
+      "name": "Suspension d’un autre administrateur protégée (400)",
+      "status": "FAIL",
+      "error": "suspension autre admin: statut 400 attendu, reçu 200 — {\"user\":{\"id\":\"de74b89e-0464-49f5-b98d-59f334c35bba\",\"status\":\"SUSPENDED\"}}\n\n200 !== 400\n"
+    },
+    {
+      "name": "Modification du rôle d’un autre administrateur protégée (403)",
+      "status": "PASS"
+    },
+    {
+      "name": "Contrôle admin interdit à un client (403)",
+      "status": "PASS"
+    },
+    {
+      "name": "Suspension et réactivation d’un client",
+      "status": "PASS"
+    },
+    {
+      "name": "Suspension d’un commerçant : boutique et annonces masquées",
+      "status": "FAIL",
+      "error": "boutique suspendue: statut 404 attendu, reçu 200 — {\"store\":{\"id\":\"7984222a-e567-4d0a-a80b-b4d5fbc59da2\",\"name\":\"Boutique Audit 2 mwr7ad5h\",\"slug\":\"boutique-audit-2-mwr7ad5h-8dc65c\",\"description\":\"Seconde boutique de test pour vérifier la répartition multi-commerçants.\",\"logoUrl\":null,\"whatsapp\":\"+22670000003\",\"site\":\"OUAGA\",\"deliveryModes\":[\"HAND_DELIVERY\",\"MEETUP_POINT\"],\"isActive\":true,\"createdAt\":\"2026-11-22T02:11:13.269Z\",\"counts\":{\"products\":2,\"services\":0},\"reviews\":{\"enabled\":true,\"count\":0,\"average\":null}}}\n\n200 !== 404\n"
+    },
+    {
+      "name": "Signalement d’une annonce et traitement admin",
+      "status": "PASS"
+    },
+    {
+      "name": "Masquage, restauration et archivage d’une annonce",
+      "status": "PASS"
+    },
+    {
+      "name": "Mise en avant d’une annonce et tri public",
+      "status": "PASS"
+    },
+    {
+      "name": "Création, modification et archivage d’une catégorie",
+      "status": "PASS"
+    },
+    {
+      "name": "Modification d’une annonce dont la catégorie a été archivée",
+      "status": "FAIL",
+      "error": "modification annonce catégorie archivée: statut 200 attendu, reçu 400 — {\"error\":\"INVALID_CATEGORY\",\"message\":\"Catégorie invalide.\"}\n\n400 !== 200\n"
+    },
+    {
+      "name": "Upload du logo marchand avec le formulaire réel",
+      "status": "PASS"
+    },
+    {
+      "name": "Upload d’un SVG refusé (415)",
+      "status": "PASS"
+    },
+    {
+      "name": "Fichier HTML déguisé en PNG refusé (415)",
+      "status": "PASS"
+    },
+    {
+      "name": "Image de plus de 2 Mo refusée (413)",
+      "status": "PASS"
+    },
+    {
+      "name": "Validation des prix et des catégories (400)",
+      "status": "PASS"
+    },
+    {
+      "name": "Protection CSRF par origine (403)",
+      "status": "PASS"
+    },
+    {
+      "name": "Injection SQL dans la recherche et la connexion",
+      "status": "PASS"
+    },
+    {
+      "name": "Données personnelles absentes des DTO admin commandes",
+      "status": "PASS"
+    },
+    {
+      "name": "Données personnelles absentes des DTO admin utilisateurs",
+      "status": "PASS"
+    },
+    {
+      "name": "Journal d’audit alimenté par les actions admin",
+      "status": "PASS"
+    },
+    {
+      "name": "Paramètres plateforme réellement appliqués",
+      "status": "PASS"
+    },
+    {
+      "name": "Limitation des tentatives de connexion",
+      "status": "FAIL",
+      "error": "aucune limitation détectée: 401,401,401,401,401,401,401,401,401,401,401,401"
+    }
+  ]
+}

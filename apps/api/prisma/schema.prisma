@@ -1,0 +1,460 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  MERCHANT
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Site {
+  KAMBOINSIN
+  OUAGA
+}
+
+enum ListingType {
+  PHYSICAL
+  SECOND_HAND
+  SERVICE
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum Availability {
+  AVAILABLE
+  OUT_OF_STOCK
+  PAUSED
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryMode {
+  HAND_DELIVERY
+  MEETUP_POINT
+}
+
+enum NotificationType {
+  ORDER_PLACED
+  NEW_ORDER
+  ORDER_STATUS
+  LISTING_ARCHIVED
+}
+
+enum ReportReason {
+  INAPPROPRIATE
+  FRAUD
+  PROHIBITED
+  MISLEADING
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model Location {
+  id             String   @id @default(uuid()) @db.Uuid
+  site           Site
+  buildingNumber String   @map("building_number") @db.VarChar(10)
+  roomNumber     String   @map("room_number") @db.VarChar(10)
+  floor          Int      @db.SmallInt
+  reference      String   @db.VarChar(32)
+  users          User[]
+  stores         Store[]
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("locations")
+}
+
+model User {
+  id              String         @id @default(uuid()) @db.Uuid
+  email           String         @unique @db.VarChar(160)
+  passwordHash    String         @map("password_hash")
+  role            Role           @default(CLIENT)
+  firstName       String         @map("first_name") @db.VarChar(80)
+  lastName        String         @map("last_name") @db.VarChar(80)
+  profilePhotoUrl String?        @map("profile_photo_url") @db.VarChar(500)
+  phoneE164       String         @map("phone_e164") @db.VarChar(16)
+  locationId      String         @map("location_id") @db.Uuid
+  location        Location       @relation(fields: [locationId], references: [id])
+  store           Store?
+  status          UserStatus     @default(ACTIVE)
+  emailVerifiedAt DateTime?      @map("email_verified_at")
+  refreshTokens   RefreshToken[]
+  cartItems       CartItem[]
+  cartNotes       CartNote[]
+  orders          Order[]
+  orderGroups     OrderGroup[]
+  reviews         Review[]
+  notifications   Notification[]
+  favorites       Favorite[]
+  reports         Report[]       @relation("ReportReporter")
+  resolvedReports Report[]       @relation("ReportResolver")
+  auditLogs       AuditLog[]     @relation("AuditActor")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Store {
+  id            String        @id @default(uuid()) @db.Uuid
+  ownerId       String        @unique @map("owner_id") @db.Uuid
+  owner         User          @relation(fields: [ownerId], references: [id])
+  name          String        @db.VarChar(120)
+  slug          String        @unique @db.VarChar(140)
+  description   String
+  whatsappE164  String        @map("whatsapp_e164") @db.VarChar(16)
+  logoUrl       String?       @map("logo_url") @db.VarChar(500)
+  locationId    String        @map("location_id") @db.Uuid
+  location      Location      @relation(fields: [locationId], references: [id])
+  deliveryModes DeliveryMode[]
+  isActive      Boolean       @default(true) @map("is_active")
+  listings      Listing[]
+  cartNotes     CartNote[]
+  orders        Order[]
+  reviews       Review[]
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@index([locationId, isActive])
+  @@map("stores")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(120)
+  slug      String    @unique @db.VarChar(140)
+  icon      String?
+  position  Int       @default(0)
+  isActive  Boolean   @default(true) @map("is_active")
+  parentId  String?   @map("parent_id") @db.Uuid
+  parent    Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  listings  Listing[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model Listing {
+  id          String        @id @default(uuid()) @db.Uuid
+  storeId     String        @map("store_id") @db.Uuid
+  store       Store         @relation(fields: [storeId], references: [id])
+  categoryId  String?       @map("category_id") @db.Uuid
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  type        ListingType
+  title       String        @db.VarChar(140)
+  slug        String        @db.VarChar(160)
+  description String
+  priceCents  Int           @map("price_cents")
+  currency    String        @default("XOF") @db.Char(3)
+  condition   Condition?
+  availability Availability @default(AVAILABLE)
+  quantity    Int?
+  durationMinutes Int?     @map("duration_minutes")
+  requirements String?
+  options     Json?
+  status      ListingStatus @default(DRAFT)
+  viewsCount  Int           @default(0) @map("views_count")
+  isFeatured  Boolean       @default(false) @map("is_featured")
+  featuredAt  DateTime?     @map("featured_at")
+  publishedAt DateTime?     @map("published_at")
+  photos      ListingPhoto[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  favorites   Favorite[]
+  reports     Report[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([storeId, slug])
+  @@index([status, type, priceCents])
+  @@index([status, publishedAt])
+  @@index([status, isFeatured, publishedAt])
+  @@index([status, viewsCount])
+  @@index([status, categoryId, publishedAt])
+  @@index([status, storeId, publishedAt])
+  @@map("listings")
+}
+
+model ListingPhoto {
+  id        String  @id @default(uuid()) @db.Uuid
+  listingId String  @map("listing_id") @db.Uuid
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String  @db.VarChar(500)
+  thumbUrl  String? @map("thumb_url") @db.VarChar(500)
+  alt       String?
+  width     Int?
+  height    Int?
+  bytes     Int?
+  position  Int     @db.SmallInt
+
+  @@unique([listingId, position])
+  @@map("listing_photos")
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String   @map("listing_id") @db.Uuid
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, listingId])
+  @@map("cart_items")
+}
+
+model CartNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeId   String   @map("store_id") @db.Uuid
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  note      String   @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, storeId])
+  @@map("cart_notes")
+}
+
+model OrderGroup {
+  id                    String        @id @default(uuid()) @db.Uuid
+  reference             String        @unique @db.VarChar(32)
+  clientId              String        @map("client_id") @db.Uuid
+  client                User          @relation(fields: [clientId], references: [id])
+  status                OrderStatus   @default(PENDING)
+  totalCents            Int           @map("total_cents")
+  currency              String        @default("XOF") @db.Char(3)
+  deliveryMode          DeliveryMode  @map("delivery_mode")
+  meetingPointId        String?       @map("meeting_point_id") @db.Uuid
+  meetingPoint          MeetingPoint? @relation(fields: [meetingPointId], references: [id])
+  meetingNote           String?       @map("meeting_note")
+  snapshotClientName    String        @map("snapshot_client_name") @db.VarChar(160)
+  snapshotClientPhone   String        @map("snapshot_client_phone") @db.VarChar(20)
+  snapshotSite          Site          @map("snapshot_site")
+  snapshotBuildingNumber String       @map("snapshot_building_number") @db.VarChar(10)
+  snapshotRoomNumber    String        @map("snapshot_room_number") @db.VarChar(10)
+  snapshotFloor         Int           @map("snapshot_floor") @db.SmallInt
+  snapshotLocationRef   String        @map("snapshot_location_ref") @db.VarChar(32)
+  orders                Order[]
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  @@index([clientId, createdAt])
+  @@index([status])
+  @@map("order_groups")
+}
+
+model MeetingPoint {
+  id          String   @id @default(uuid()) @db.Uuid
+  site        Site
+  label       String   @db.VarChar(120)
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  orders      Order[]
+  orderGroups OrderGroup[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([site, isActive])
+  @@map("meeting_points")
+}
+
+model Order {
+  id                        String      @id @default(uuid()) @db.Uuid
+  orderNumber               String      @unique @map("order_number") @db.VarChar(24)
+  orderGroupId              String?     @map("order_group_id") @db.Uuid
+  orderGroup                OrderGroup? @relation(fields: [orderGroupId], references: [id])
+  clientId                  String      @map("client_id") @db.Uuid
+  client                    User        @relation(fields: [clientId], references: [id])
+  storeId                   String      @map("store_id") @db.Uuid
+  store                     Store       @relation(fields: [storeId], references: [id])
+  status                    OrderStatus @default(PENDING)
+  totalCents                Int         @map("total_cents")
+  currency                  String      @default("XOF") @db.Char(3)
+  clientNote                String?     @map("client_note")
+  deliveryMode              DeliveryMode @map("delivery_mode")
+  meetingPointId            String?     @map("meeting_point_id") @db.Uuid
+  meetingPoint              MeetingPoint? @relation(fields: [meetingPointId], references: [id])
+  meetingNote               String?     @map("meeting_note")
+  snapshotClientName        String      @map("snapshot_client_name") @db.VarChar(160)
+  snapshotClientWhatsapp    String?     @map("snapshot_client_whatsapp") @db.VarChar(16)
+  snapshotClientPhone       String      @map("snapshot_client_phone") @db.VarChar(20)
+  snapshotBuildingNumber    String      @map("snapshot_building_number") @db.VarChar(10)
+  snapshotRoomNumber        String      @map("snapshot_room_number") @db.VarChar(10)
+  snapshotFloor             Int         @map("snapshot_floor") @db.SmallInt
+  snapshotLocationRef       String      @map("snapshot_location_ref") @db.VarChar(32)
+  snapshotSite              Site        @map("snapshot_site")
+  snapshotMeetingPointLabel String?     @map("snapshot_meeting_point_label") @db.VarChar(120)
+  items                     OrderItem[]
+  createdAt                 DateTime    @default(now()) @map("created_at")
+  updatedAt                 DateTime    @updatedAt @map("updated_at")
+  statusUpdatedAt           DateTime    @default(now()) @map("status_updated_at")
+
+  @@index([clientId])
+  @@index([clientId, createdAt])
+  @@index([storeId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String      @id @default(uuid()) @db.Uuid
+  orderId        String      @map("order_id") @db.Uuid
+  order          Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId      String?     @map("listing_id") @db.Uuid
+  listing        Listing?    @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  snapshotTitle  String      @map("snapshot_title") @db.VarChar(140)
+  snapshotType   ListingType @map("snapshot_type")
+  unitPriceCents Int         @map("unit_price_cents")
+  quantity       Int
+  lineTotalCents Int         @map("line_total_cents")
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String   @map("listing_id") @db.Uuid
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, listingId])
+  @@index([userId, createdAt])
+  @@map("favorites")
+}
+
+model Notification {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  payload   Json
+  readAt    DateTime?       @map("read_at")
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  authorId  String   @map("author_id") @db.Uuid
+  author    User     @relation(fields: [authorId], references: [id])
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([storeId, authorId])
+  @@index([storeId])
+  @@map("reviews")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String   @db.VarChar(80)
+  targetType String   @map("target_type") @db.VarChar(60)
+  targetId   String?  @map("target_id") @db.Uuid
+  meta       Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Report {
+  id             String       @id @default(uuid()) @db.Uuid
+  listingId      String       @map("listing_id") @db.Uuid
+  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporterId     String       @map("reporter_id") @db.Uuid
+  reporter       User         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reason         ReportReason
+  details        String?      @db.VarChar(1000)
+  status         ReportStatus @default(OPEN)
+  resolutionNote String?      @map("resolution_note") @db.VarChar(500)
+  resolvedById   String?      @map("resolved_by_id") @db.Uuid
+  resolvedBy     User?        @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt     DateTime?    @map("resolved_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@index([listingId])
+  @@map("reports")
+}
+
+model PlatformSettings {
+  id                 String   @id @default("default") @db.VarChar(32)
+  platformName       String   @default("2ie Market") @map("platform_name") @db.VarChar(120)
+  logoUrl            String?  @map("logo_url") @db.VarChar(500)
+  supportEmail       String?  @map("support_email") @db.VarChar(160)
+  maintenanceMessage String?  @map("maintenance_message") @db.VarChar(500)
+  reviewsEnabled     Boolean  @default(true) @map("reviews_enabled")
+  updatedById        String?  @map("updated_by_id") @db.Uuid
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
+}

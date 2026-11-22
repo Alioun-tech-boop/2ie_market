@@ -1,0 +1,129 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
+import { useToast } from '../components/ui/Toast'
+import { notificationStreamUrl, notificationsApi, type NotificationDto } from '../lib/notifications'
+import { useAuth } from './AuthContext'
+
+interface NotificationsContextValue {
+  notifications: NotificationDto[]
+  unreadCount: number
+  loading: boolean
+  refresh: () => Promise<void>
+  markRead: (id: string) => Promise<void>
+  markAllRead: () => Promise<void>
+}
+
+const NotificationsContext = createContext<NotificationsContextValue | null>(null)
+
+export function NotificationsProvider({ children }: { children: ReactNode }) {
+  const { status } = useAuth()
+  const { showToast } = useToast()
+  const [notifications, setNotifications] = useState<NotificationDto[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+
+  const refresh = useCallback(async () => {
+    try {
+      const data = await notificationsApi.list()
+      setNotifications(data.notifications)
+      setUnreadCount(data.unreadCount)
+    } catch {
+      // Une perte réseau ne doit jamais casser la navigation.
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      setNotifications([])
+      setUnreadCount(0)
+      return
+    }
+    setLoading(true)
+    void refresh()
+  }, [status, refresh])
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+
+    const source = new EventSource(notificationStreamUrl(), { withCredentials: true })
+    const onNotification = (event: MessageEvent<string>) => {
+      try {
+        const incoming = JSON.parse(event.data) as NotificationDto
+        setNotifications((current) => [
+          incoming,
+          ...current.filter((item) => item.id !== incoming.id),
+        ].slice(0, 50))
+        setUnreadCount((count) => count + 1)
+        if (incoming.type !== 'ORDER_PLACED') {
+          showToast({ title: incoming.title, description: incoming.message, tone: 'info' })
+        }
+      } catch {
+        // Message SSE ignoré s'il est mal formé.
+      }
+    }
+    const onReady = (event: MessageEvent<string>) => {
+      try {
+        const data = JSON.parse(event.data) as { unreadCount?: number }
+        if (typeof data.unreadCount === 'number') setUnreadCount(data.unreadCount)
+      } catch {
+        // Ignore.
+      }
+    }
+
+    source.addEventListener('notification', onNotification as EventListener)
+    source.addEventListener('ready', onReady as EventListener)
+    // Relecture périodique : filet de sécurité si le flux SSE est coupé par un proxy.
+    const fallback = window.setInterval(() => void refresh(), 90_000)
+
+    return () => {
+      source.removeEventListener('notification', onNotification as EventListener)
+      source.removeEventListener('ready', onReady as EventListener)
+      source.close()
+      window.clearInterval(fallback)
+    }
+  }, [status, refresh, showToast])
+
+  const markRead = useCallback(async (id: string) => {
+    try {
+      const { notification } = await notificationsApi.markRead(id)
+      setNotifications((current) =>
+        current.map((item) => (item.id === id ? notification : item)),
+      )
+      setUnreadCount((count) => (notification.read ? Math.max(0, count - 1) : count))
+    } catch {
+      // Le badge reste inchangé en cas d'échec.
+    }
+  }, [])
+
+  const markAllRead = useCallback(async () => {
+    try {
+      await notificationsApi.markAllRead()
+      setNotifications((current) => current.map((item) => ({ ...item, read: true, readAt: item.readAt ?? new Date().toISOString() })))
+      setUnreadCount(0)
+    } catch {
+      // Le badge reste inchangé en cas d'échec.
+    }
+  }, [])
+
+  const value = useMemo(
+    () => ({ notifications, unreadCount, loading, refresh, markRead, markAllRead }),
+    [notifications, unreadCount, loading, refresh, markRead, markAllRead],
+  )
+
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>
+}
+
+export function useNotifications() {
+  const value = useContext(NotificationsContext)
+  if (!value) throw new Error('useNotifications doit être utilisé dans NotificationsProvider')
+  return value
+}
