@@ -1,11 +1,11 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Home, Package, Search, ShoppingBag, UserRound } from 'lucide-react'
+import { Grid2X2, Home, Package, ShoppingBag, UserRound } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/cn'
 
 const items = [
   { id: 'home', label: 'Accueil', icon: Home },
-  { id: 'search', label: 'Recherche', icon: Search },
+  { id: 'search', label: 'Explorer', icon: Grid2X2 },
   { id: 'cart', label: 'Panier', icon: ShoppingBag },
   { id: 'orders', label: 'Commandes', icon: Package },
   { id: 'profile', label: 'Profil', icon: UserRound },
@@ -32,10 +32,10 @@ export function MobileBottomNav({
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+      className="fixed inset-x-4 bottom-3 z-40 rounded-[1.7rem] bg-ink px-1.5 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_16px_38px_rgba(15,23,42,0.25)] md:hidden"
       aria-label="Navigation mobile"
     >
-      <div className="mx-auto grid max-w-lg grid-cols-5 px-2 py-2">
+      <div className="mx-auto grid max-w-lg grid-cols-5">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = active === item.id
@@ -44,18 +44,18 @@ export function MobileBottomNav({
               key={item.id}
               type="button"
               onClick={() => handle(item.id)}
-              className="flex flex-col items-center gap-1 rounded-xl py-1 text-ink-soft transition-colors"
+              className="flex flex-col items-center gap-1 rounded-2xl py-1.5 text-white/55 transition-colors"
               aria-current={isActive ? 'page' : undefined}
             >
               <span
                 className={cn(
-                  'flex h-8 w-12 items-center justify-center rounded-xl transition-all duration-200',
-                  isActive && 'bg-brand-50 text-brand-700',
+                  'flex h-9 w-11 items-center justify-center rounded-2xl transition-all duration-200',
+                  isActive && 'bg-white text-ink shadow-sm',
                 )}
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.3 : 1.9} />
               </span>
-              <span className={cn('text-[10px] font-semibold', isActive && 'text-brand-800')}>
+              <span className={cn('text-[10px] font-semibold', isActive && 'text-white')}>
                 {item.label}
               </span>
             </button>

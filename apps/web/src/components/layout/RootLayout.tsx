@@ -34,7 +34,7 @@ export function RootLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#fcfcfd] pb-24 md:pb-0">
       {platform.maintenanceMessage && (
         <div className="border-b border-accent-200 bg-accent-50 px-4 py-2.5 text-center text-xs font-semibold text-accent-800">
           {platform.maintenanceMessage}

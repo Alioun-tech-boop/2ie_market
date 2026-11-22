@@ -52,16 +52,16 @@ export function CategoriesSection({
   onSelect: (slug: string) => void
 }) {
   return (
-    <section id="categories" className="container-premium py-14 lg:py-20">
+    <section id="categories" className="container-premium py-10 lg:py-16">
       <SectionHeader
         eyebrow="Explorez"
         title="Une catégorie pour chaque besoin"
         description="Du matériel aux services, trouvez ce qu'il vous faut en quelques secondes."
       />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none lg:grid lg:grid-cols-6 lg:overflow-visible">
         {loading
           ? Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-40 rounded-2xl" />
+              <Skeleton key={index} className="h-28 w-32 shrink-0 rounded-2xl lg:h-40 lg:w-auto" />
             ))
           : categories.map((category, index) => {
               const Icon = iconMap[category.icon ?? ''] ?? LayoutGrid
@@ -70,7 +70,7 @@ export function CategoriesSection({
                   key={category.id}
                   type="button"
                   onClick={() => onSelect(category.slug)}
-                  className="group flex flex-col items-start gap-3 rounded-2xl border border-line bg-white p-4 text-left shadow-soft transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-brand-200 hover:shadow-card"
+                  className="group flex w-32 shrink-0 flex-col items-start gap-3 rounded-2xl border border-line bg-white p-3.5 text-left shadow-soft transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-brand-200 hover:shadow-card lg:w-auto lg:p-4"
                 >
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${tones[index % tones.length]}`}

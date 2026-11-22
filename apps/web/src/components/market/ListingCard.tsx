@@ -15,13 +15,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const available = listing.availability === 'AVAILABLE'
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-soft transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-brand-200 hover:shadow-card">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-line bg-white shadow-soft transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-brand-200 hover:shadow-card">
       <Link
         to="/annonce/$id"
         params={{ id: listing.id }}
         className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-brand-50">
+        <div className="relative aspect-[4/3] overflow-hidden bg-brand-50 sm:aspect-[5/4]">
           {photo ? (
             <img
               src={photo}
@@ -45,7 +45,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col p-4">
+        <div className="flex flex-1 flex-col p-3.5 sm:p-4">
           <Price cents={listing.priceCents} size="md" />
           <h3 className="mt-2.5 line-clamp-2 text-sm font-bold leading-snug text-ink transition-colors group-hover:text-brand-800">
             {listing.title}
