@@ -11,6 +11,7 @@
     "dev:api": "npm run dev -w @2ie/api",
     "build": "npm run build -w @2ie/api && npm run build -w @2ie/web",
     "prisma:generate": "npm run prisma:generate -w @2ie/api",
+    "prisma:deploy": "npm run prisma:deploy -w @2ie/api",
     "prisma:migrate": "npm run prisma:migrate -w @2ie/api",
     "prisma:seed": "npm run prisma:seed -w @2ie/api"
   }

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: 2ie-market-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run prisma:generate && npm run build -w @2ie/api
+    preDeployCommand: npm run prisma:deploy
+    startCommand: npm run start -w @2ie/api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: JWT_SECRET
+        generateValue: true
+      # Valeur fournie lors de l'application du Blueprint : URL PostgreSQL
+      # du projet Supabase, jamais commise dans ce fichier.
+      - key: DATABASE_URL
+        sync: false
+      # URL de production Vercel, renseignée après la création du frontend.
+      - key: FRONTEND_URL
+        sync: false
+      - key: REVIEWS_ENABLED
+        value: "false"

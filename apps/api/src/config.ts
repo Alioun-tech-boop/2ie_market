@@ -17,7 +17,9 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL ?? '',
   jwtSecret,
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
-  port: Number(process.env.API_PORT ?? 3000),
+  // Render et les autres plateformes PaaS fournissent PORT. API_PORT reste
+  // compatible avec le développement local existant.
+  port: Number(process.env.PORT ?? process.env.API_PORT ?? 3000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
   secureCookies: process.env.NODE_ENV === 'production',
   uploadsDir: join(here, '..', 'uploads'),
