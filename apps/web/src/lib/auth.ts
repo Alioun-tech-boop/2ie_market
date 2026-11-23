@@ -61,9 +61,44 @@ export function assetUrl(path: string | null | undefined): string | null {
   return `${API_URL}${path.startsWith('/') ? '' : '/'}${path}`
 }
 
+let refreshInFlight: Promise<boolean> | null = null
+
+async function refreshSessionOnce(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${API_URL}/v1/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    }).then((response) => response.ok).catch(() => false)
+      .finally(() => { refreshInFlight = null })
+  }
+  return refreshInFlight
+}
+
+function publicErrorMessage(code: string, status: number): string {
+  const messages: Record<string, string> = {
+    UNAUTHENTICATED: 'Votre session a expiré. Connectez-vous à nouveau.',
+    INVALID_SESSION: 'Votre session a expiré. Connectez-vous à nouveau.',
+    INVALID_REFRESH_TOKEN: 'Votre session a expiré. Connectez-vous à nouveau.',
+    ACCOUNT_SUSPENDED: 'Ce compte est temporairement indisponible.',
+    ORIGIN_FORBIDDEN: 'Cette action n’a pas pu être effectuée. Actualisez la page puis réessayez.',
+    LISTING_NOT_FOUND: 'Cette annonce n’est plus disponible.',
+    CONFLICT: 'Cette opération ne peut pas être effectuée avec ces informations.',
+    FILE_TOO_LARGE: 'Le fichier est trop volumineux. Choisissez une image de moins de 2 Mo.',
+    INVALID_IMAGE: 'Le fichier image ne peut pas être utilisé. Essayez un autre format.',
+    VALIDATION_ERROR: 'Certaines informations sont incorrectes. Vérifiez les champs indiqués.',
+  }
+  if (messages[code]) return messages[code]
+  if (status === 401) return 'Votre session a expiré. Connectez-vous à nouveau.'
+  if (status === 403) return 'Vous n’êtes pas autorisé à effectuer cette action.'
+  if (status === 404) return 'Le contenu demandé est introuvable.'
+  if (status === 409) return 'Cette opération est momentanément impossible.'
+  if (status >= 500) return 'Le service rencontre un problème. Réessayez dans quelques instants.'
+  return 'Une erreur est survenue. Vérifiez les informations puis réessayez.'
+}
+
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData
-  const response = await fetch(`${API_URL}/v1${path}`, {
+  const request = () => fetch(`${API_URL}/v1${path}`, {
     ...options,
     credentials: 'include',
     headers: isFormData
@@ -71,14 +106,15 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       : { 'Content-Type': 'application/json', ...options.headers },
   })
 
+  let response = await request()
+  const canRefresh = response.status === 401 &&
+    !['/auth/refresh', '/auth/session', '/auth/login', '/auth/register', '/auth/logout'].includes(path)
+  if (canRefresh && await refreshSessionOnce()) response = await request()
+
   const data: Record<string, unknown> = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      typeof data.error === 'string' ? data.error : 'UNKNOWN_ERROR',
-      typeof data.message === 'string' ? data.message : 'Une erreur est survenue.',
-      data.issues as FieldIssues | undefined,
-    )
+    const code = typeof data.error === 'string' ? data.error : 'UNKNOWN_ERROR'
+    throw new ApiError(response.status, code, publicErrorMessage(code, response.status), data.issues as FieldIssues | undefined)
   }
   return data as T
 }
