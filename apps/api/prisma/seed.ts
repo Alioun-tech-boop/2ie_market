@@ -4,7 +4,7 @@ import { hashPassword } from '../src/lib/password'
 import { prisma } from '../src/lib/prisma'
 
 const email = (process.env.ADMIN_EMAIL ?? 'admin@2ie-market.local').toLowerCase()
-const password = process.env.ADMIN_PASSWORD ?? 'Admin1234!'
+const password = process.env.ADMIN_PASSWORD
 const firstName = process.env.ADMIN_FIRST_NAME ?? 'Admin'
 const lastName = process.env.ADMIN_LAST_NAME ?? '2ie Market'
 
@@ -82,6 +82,9 @@ async function main() {
   if (existing) {
     console.log(`Compte administrateur déjà présent : ${email}`)
     return
+  }
+  if (!password || password.length < 12) {
+    throw new Error('Définissez ADMIN_PASSWORD (12 caractères minimum) avant de créer le compte administrateur.')
   }
 
   const reference = generateReference('A', '0', 0)
