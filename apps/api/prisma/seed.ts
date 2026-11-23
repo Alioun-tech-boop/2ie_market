@@ -242,7 +242,7 @@ async function seedAdminIfConfigured() {
   if (!configuredEmail || !password) {
     throw new Error('ADMIN_EMAIL et ADMIN_PASSWORD doivent être définis ensemble.')
   }
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(configuredEmail)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(configuredEmail)) {
     throw new Error('ADMIN_EMAIL doit être une adresse e-mail valide.')
   }
   if (password.length < 14) {
