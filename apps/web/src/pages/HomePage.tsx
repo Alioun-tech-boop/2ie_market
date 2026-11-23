@@ -21,16 +21,18 @@ export default function HomePage() {
   const [categories, setCategories] = useState<PublicCategory[]>([])
   const [popular, setPopular] = useState<Listing[]>([])
   const [recent, setRecent] = useState<Listing[]>([])
+  const [services, setServices] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
     ;(async () => {
       try {
-        const [categoryResult, popularResult, recentResult] = await Promise.allSettled([
+        const [categoryResult, popularResult, recentResult, serviceResult] = await Promise.allSettled([
           marketApi.categories(),
           marketApi.search({ ...defaultSearchState, sort: 'popular', limit: 8 }),
           marketApi.search({ ...defaultSearchState, sort: 'recent', limit: 8 }),
+          marketApi.search({ ...defaultSearchState, type: 'SERVICE', sort: 'popular', limit: 8 }),
         ])
         if (!active) return
 
@@ -44,8 +46,11 @@ export default function HomePage() {
         if (recentResult.status === 'fulfilled') {
           setRecent(recentResult.value.listings)
         }
+        if (serviceResult.status === 'fulfilled') {
+          setServices(serviceResult.value.listings)
+        }
 
-        if ([categoryResult, popularResult, recentResult].some((result) => result.status === 'rejected')) {
+        if ([categoryResult, popularResult, recentResult, serviceResult].some((result) => result.status === 'rejected')) {
           showToast({
             tone: 'info',
             title: 'Chargement partiel',
@@ -98,6 +103,15 @@ export default function HomePage() {
         listings={recent}
         loading={loading}
         onSeeAll={() => goSearch({ sort: 'recent' })}
+      />
+      <PopularProductsSection
+        id="services"
+        eyebrow="Services de la communauté"
+        title="Prestations disponibles"
+        description="Cours, assistance, création, réparation et autres services proposés sur le campus."
+        listings={services}
+        loading={loading}
+        onSeeAll={() => goSearch({ type: 'SERVICE' })}
       />
     </main>
   )
