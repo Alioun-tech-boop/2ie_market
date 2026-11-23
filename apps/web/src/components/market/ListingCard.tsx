@@ -1,12 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowUpRight, ImageOff, MapPin } from 'lucide-react'
+import { ImageOff } from 'lucide-react'
 import { assetUrl } from '../../lib/auth'
-import { siteLabel } from '../../lib/format'
-import { availabilityLabels, shortTypeLabels } from '../../lib/listingLabels'
 import type { Listing } from '../../lib/market'
-import { listingWhatsappMessage } from '../../lib/whatsapp'
-import { Badge } from '../ui/Badge'
-import { Price } from '../ui/Price'
 import { FavoriteButton } from './FavoriteButton'
 import { WhatsappButton } from './WhatsappButton'
 
@@ -15,79 +10,56 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const available = listing.availability === 'AVAILABLE'
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-line bg-white shadow-soft transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-brand-200 hover:shadow-card">
+    <article className="group relative aspect-square min-w-0 overflow-hidden rounded-2xl bg-slate-100 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card">
       <Link
         to="/annonce/$id"
         params={{ id: listing.id }}
-        className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20"
+        aria-label={`${listing.title}, ${new Intl.NumberFormat('fr-FR').format(listing.priceCents / 100)} FCFA`}
+        className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-brand-500/40"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-brand-50 sm:aspect-[5/4]">
-          {photo ? (
-            <img
-              src={photo}
-              alt={listing.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 ease-premium group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-brand-300">
-              <ImageOff className="h-9 w-9" aria-hidden="true" />
-            </div>
-          )}
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-            {listing.isFeatured && <Badge tone="accent" dot>À la une</Badge>}
-            <Badge tone="brand">{shortTypeLabels[listing.type]}</Badge>
-            {available ? (
-              <Badge tone="success">Disponible</Badge>
-            ) : (
-              <Badge tone="muted">{availabilityLabels[listing.availability]}</Badge>
-            )}
+        {photo ? (
+          <img
+            src={photo}
+            alt={listing.title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 ease-premium group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-slate-400">
+            <ImageOff className="h-9 w-9" aria-hidden="true" />
           </div>
-        </div>
+        )}
 
-        <div className="flex flex-1 flex-col p-3.5 sm:p-4">
-          <Price cents={listing.priceCents} size="md" />
-          <h3 className="mt-2.5 line-clamp-2 text-sm font-bold leading-snug text-ink transition-colors group-hover:text-brand-800">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-3 pt-16 sm:px-4 sm:pb-4">
+          <p className="line-clamp-2 text-sm font-bold leading-snug text-white drop-shadow sm:text-base">
             {listing.title}
-          </h3>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-ink-muted">
-            {listing.category && <span>{listing.category.name}</span>}
-            {listing.durationMinutes && <span>{listing.durationMinutes} min</span>}
-            {listing.quantity !== null && <span>{listing.quantity} en stock</span>}
-          </div>
-
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-line/80 pt-3.5">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-50 text-[10px] font-bold text-brand-700">
-                {listing.store.logoUrl ? (
-                  <img src={assetUrl(listing.store.logoUrl) ?? ''} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  listing.store.name.slice(0, 2).toUpperCase()
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-ink">{listing.store.name}</p>
-                <p className="flex items-center gap-1 text-[10px] text-ink-muted">
-                  <MapPin className="h-2.5 w-2.5" aria-hidden="true" />
-                  {siteLabel(listing.store.site)}
-                </p>
-              </div>
-            </div>
-            <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-soft transition-colors group-hover:text-brand-700" aria-hidden="true" />
-          </div>
+          </p>
+          <p className="mt-1.5 text-sm font-extrabold text-white drop-shadow sm:text-base">
+            {new Intl.NumberFormat('fr-FR').format(listing.priceCents / 100)} FCFA
+          </p>
         </div>
+
+        {listing.isFeatured && (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-bold text-amber-950 shadow-sm">
+            À la une
+          </span>
+        )}
+        {!available && (
+          <span className="absolute bottom-[5.8rem] left-2.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur">
+            Indisponible
+          </span>
+        )}
       </Link>
 
-      <FavoriteButton listing={listing} compact className="absolute right-3 top-3 z-10" />
-
+      <FavoriteButton listing={listing} compact className="absolute right-2.5 top-2.5 z-10 border-0 shadow-md" />
       <WhatsappButton
         phone={listing.store.whatsapp}
-        message={listingWhatsappMessage(listing, listing.store.name)}
+        message={`Bonjour, je souhaite avoir des informations sur « ${listing.title} » sur 2ie Market.`}
         compact
-        title="Poser une question sur WhatsApp"
-        className="absolute right-3 top-14 z-10 shadow-soft"
+        title="Contacter le vendeur sur WhatsApp"
+        className="absolute bottom-2.5 right-2.5 z-10 border-0 shadow-md"
       />
-    </div>
+    </article>
   )
 }
