@@ -52,7 +52,7 @@ export class ApiError extends Error {
   }
 }
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+export const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '/api' : 'http://localhost:3000')
 
 /** Les chemins `/uploads/...` renvoyés par l'API sont servis par le backend. */
 export function assetUrl(path: string | null | undefined): string | null {
@@ -64,8 +64,8 @@ export function assetUrl(path: string | null | undefined): string | null {
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData
   const response = await fetch(`${API_URL}/v1${path}`, {
-    credentials: 'include',
     ...options,
+    credentials: 'include',
     headers: isFormData
       ? options.headers
       : { 'Content-Type': 'application/json', ...options.headers },
