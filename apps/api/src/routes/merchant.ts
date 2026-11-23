@@ -79,12 +79,14 @@ export async function merchantRoutes(app: FastifyInstance) {
 
     // Les indicateurs sont agrégés sur TOUTES les données de la boutique ;
     // seules les listes affichées sont limitées pour la performance.
-    const [listings, orders, listingTypes, orderStatuses, viewsAggregate] = await Promise.all([
+    const [listings, listingCount, orders, listingTypes, orderStatuses, viewsAggregate] = await Promise.all([
       prisma.listing.findMany({
         where: { storeId: store.id, status: { not: 'ARCHIVED' } },
         include: listingInclude,
         orderBy: { updatedAt: 'desc' },
+        take: 50,
       }),
+      prisma.listing.count({ where: { storeId: store.id, status: { not: 'ARCHIVED' } } }),
       prisma.order.findMany({
         where: { storeId: store.id, ...(status ? { status } : {}) },
         include: { items: true, meetingPoint: true, orderGroup: { select: { reference: true } } },
@@ -116,7 +118,7 @@ export async function merchantRoutes(app: FastifyInstance) {
 
     return {
       stats: {
-        listings: listings.length,
+        listings: listingCount,
         published: (typeCounts.PHYSICAL ?? 0) + (typeCounts.SECOND_HAND ?? 0) + (typeCounts.SERVICE ?? 0),
         products: (typeCounts.PHYSICAL ?? 0) + (typeCounts.SECOND_HAND ?? 0),
         services: typeCounts.SERVICE ?? 0,
