@@ -139,7 +139,7 @@ export default function RegisterPage() {
           <Input id="register-email" label="Adresse e-mail" type="email" icon={Mail} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" error={errorOf('email')} required />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Téléphone" type="tel" icon={Phone} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" error={errorOf('phone')} required />
-            <Input label="Mot de passe" type="password" icon={LockKeyhole} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8 caractères minimum" error={errorOf('password')} hint="Majuscule, minuscule et chiffre requis." required />
+            <Input label="Mot de passe" type="password" icon={LockKeyhole} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="12 caractères minimum" error={errorOf('password')} hint="Majuscule, minuscule et chiffre requis." required />
           </div>
         </div>
 
