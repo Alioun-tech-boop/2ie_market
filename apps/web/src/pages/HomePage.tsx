@@ -27,17 +27,31 @@ export default function HomePage() {
     let active = true
     ;(async () => {
       try {
-        const [categoryResult, popularResult, recentResult] = await Promise.all([
+        const [categoryResult, popularResult, recentResult] = await Promise.allSettled([
           marketApi.categories(),
           marketApi.search({ ...defaultSearchState, sort: 'popular', limit: 8 }),
           marketApi.search({ ...defaultSearchState, sort: 'recent', limit: 8 }),
         ])
         if (!active) return
-        setCategories(categoryResult.categories)
-        setPopular(popularResult.listings)
-        setRecent(recentResult.listings)
-      } catch {
-        if (active) showToast({ tone: 'info', title: 'Chargement impossible', description: 'Réessayez dans un instant.' })
+
+        // Une panne des catégories ne doit pas masquer les annonces déjà disponibles.
+        if (categoryResult.status === 'fulfilled') {
+          setCategories(categoryResult.value.categories)
+        }
+        if (popularResult.status === 'fulfilled') {
+          setPopular(popularResult.value.listings)
+        }
+        if (recentResult.status === 'fulfilled') {
+          setRecent(recentResult.value.listings)
+        }
+
+        if ([categoryResult, popularResult, recentResult].some((result) => result.status === 'rejected')) {
+          showToast({
+            tone: 'info',
+            title: 'Chargement partiel',
+            description: 'Certaines données sont momentanément indisponibles. Les autres annonces restent accessibles.',
+          })
+        }
       } finally {
         if (active) setLoading(false)
       }
