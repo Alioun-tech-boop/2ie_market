@@ -35,36 +35,23 @@ export default function HomePage() {
           marketApi.search({ ...defaultSearchState, type: 'SERVICE', sort: 'popular', limit: 8 }),
         ])
         if (!active) return
-
-        // Une panne des catégories ne doit pas masquer les annonces déjà disponibles.
-        if (categoryResult.status === 'fulfilled') {
-          setCategories(categoryResult.value.categories)
-        }
-        if (popularResult.status === 'fulfilled') {
-          setPopular(popularResult.value.listings)
-        }
-        if (recentResult.status === 'fulfilled') {
-          setRecent(recentResult.value.listings)
-        }
-        if (serviceResult.status === 'fulfilled') {
-          setServices(serviceResult.value.listings)
-        }
+        if (categoryResult.status === 'fulfilled') setCategories(categoryResult.value.categories)
+        if (popularResult.status === 'fulfilled') setPopular(popularResult.value.listings)
+        if (recentResult.status === 'fulfilled') setRecent(recentResult.value.listings)
+        if (serviceResult.status === 'fulfilled') setServices(serviceResult.value.listings)
 
         if ([categoryResult, popularResult, recentResult, serviceResult].some((result) => result.status === 'rejected')) {
           showToast({
             tone: 'info',
             title: 'Chargement partiel',
-            description: 'Certaines données sont momentanément indisponibles. Les autres annonces restent accessibles.',
+            description: 'Certaines annonces sont momentanément indisponibles.',
           })
         }
       } finally {
         if (active) setLoading(false)
       }
     })()
-
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [showToast])
 
   function goSearch(patch: Partial<SearchState> = {}) {
@@ -88,27 +75,27 @@ export default function HomePage() {
       />
       <PopularProductsSection
         id="produits"
-        eyebrow="Sélection de la communauté"
+        eyebrow=""
         title="Annonces populaires"
-        description="Les annonces les plus consultées par la communauté."
+        description=""
         listings={popular}
         loading={loading}
         onSeeAll={() => goSearch({ sort: 'popular' })}
       />
       <PopularProductsSection
         id="nouveautes"
-        eyebrow="Fraîchement publié"
+        eyebrow=""
         title="Nouveautés"
-        description="Les dernières annonces déposées sur la marketplace."
+        description=""
         listings={recent}
         loading={loading}
         onSeeAll={() => goSearch({ sort: 'recent' })}
       />
       <PopularProductsSection
         id="services"
-        eyebrow="Services de la communauté"
-        title="Prestations disponibles"
-        description="Cours, assistance, création, réparation et autres services proposés sur le campus."
+        eyebrow=""
+        title="Services"
+        description=""
         listings={services}
         loading={loading}
         onSeeAll={() => goSearch({ type: 'SERVICE' })}
