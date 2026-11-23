@@ -12,7 +12,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
-    "prestart": "tsx prisma/seed.ts --reference-only"
+    "prestart": "tsx prisma/seed.ts --bootstrap-only"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
