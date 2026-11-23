@@ -11,7 +11,8 @@
     "prisma:validate": "prisma validate",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prestart": "tsx prisma/seed.ts --reference-only"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
