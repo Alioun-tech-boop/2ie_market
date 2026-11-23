@@ -74,6 +74,10 @@ async function seedMeetingPoints() {
 async function main() {
   await seedCategories()
   await seedMeetingPoints()
+  // En production, le pré-démarrage initialise uniquement les données de référence.
+  // La création du compte administrateur reste une opération manuelle séparée.
+  if (process.argv.includes('--reference-only')) return
+
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) {
     console.log(`Compte administrateur déjà présent : ${email}`)
