@@ -5,11 +5,22 @@
 @tailwind utilities;
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   html {
     scroll-behavior: smooth;
+    width: 100%;
+    overflow-x: clip;
   }
 
   body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
     @apply bg-white font-sans text-ink antialiased;
   }
 
@@ -48,5 +59,18 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+@layer base {
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  #root {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
 }
