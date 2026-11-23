@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/2ie_market
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+      - name: Validate Prisma schema
+        run: npx prisma validate --schema=apps/api/prisma/schema.prisma
+      - name: Build API and frontend
+        run: npm run build
