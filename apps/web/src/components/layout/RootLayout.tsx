@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useToast } from '../ui/Toast'
 import { usePlatform } from '../../context/PlatformContext'
 import { defaultSearchState } from '../../lib/market'
 import { Header } from './Header'
-import { Footer } from './Footer'
 import { MobileBottomNav, type MobileTab } from './MobileBottomNav'
 
 export function RootLayout() {
-  const { showToast } = useToast()
   const { platform } = usePlatform()
   const navigate = useNavigate()
   const location = useLocation()
@@ -42,9 +39,6 @@ export function RootLayout() {
       )}
       <Header onFocusSearch={openSearch} />
       <Outlet />
-      <Footer
-        onInfo={(message) => showToast({ tone: 'info', title: 'Bientôt disponible', description: message })}
-      />
       <MobileBottomNav active={activeTab} onChange={handleTab} />
     </div>
   )
