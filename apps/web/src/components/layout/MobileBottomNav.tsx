@@ -55,9 +55,6 @@ export function MobileBottomNav({
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.3 : 1.9} />
               </span>
-              <span className={cn('text-[10px] font-semibold', isActive && 'text-white')}>
-                {item.label}
-              </span>
             </button>
           )
         })}
