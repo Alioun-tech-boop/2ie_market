@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Bell, ChevronDown, Heart, LayoutDashboard, LogOut, Package, Plus, Search, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react'
+import { Bell, ChevronDown, Heart, LayoutDashboard, LogOut, Package, Plus, Search, Settings, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useNotifications } from '../../context/NotificationsContext'
@@ -23,6 +23,7 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   function handleSearch() {
@@ -38,24 +39,13 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-white/85 backdrop-blur-xl">
-      <div className="container-premium flex h-16 items-center justify-between gap-4 lg:h-[72px]">
+      <div className="container-premium flex h-16 min-w-0 items-center justify-between gap-2 sm:gap-3 lg:h-[72px]">
         <Link to="/" aria-label="2ie Market — accueil" className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="rounded-xl px-3.5 py-2 text-sm font-semibold text-ink-muted transition-colors hover:bg-brand-50 hover:text-brand-800"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={handleSearch}
@@ -64,6 +54,41 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
           >
             <Search className="h-4 w-4" />
           </button>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((open) => !open)}
+              aria-label="Paramètres et raccourcis"
+              aria-expanded={settingsOpen}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-white text-ink-muted transition-colors hover:border-brand-300 hover:text-brand-700"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            {settingsOpen && (
+              <>
+                <button type="button" aria-label="Fermer les paramètres" className="fixed inset-0 z-40 cursor-default" onClick={() => setSettingsOpen(false)} />
+                <div className="absolute right-0 top-full z-50 mt-2 w-[min(19rem,calc(100vw-1.5rem))] rounded-2xl border border-line bg-white p-2 shadow-lift">
+                  <p className="px-3 py-2 text-xs font-extrabold uppercase tracking-wide text-ink-soft">Accès rapides</p>
+                  {[
+                    { label: 'Explorer les annonces', href: '/recherche' },
+                    { label: 'Voir les produits', href: '/recherche?type=PRODUCT' },
+                    { label: 'Voir les services', href: '/recherche?type=SERVICE' },
+                    { label: 'Mon profil', href: '/profil' },
+                    { label: 'Mes commandes', href: '/commandes' },
+                    { label: 'Mes favoris', href: '/espace-client?section=favoris' },
+                    ...(user?.store ? [{ label: 'Tableau de bord', href: '/tableau-de-bord' }, { label: 'Publier une annonce', href: '/publier' }, { label: 'Ma boutique', href: user.store ? `/boutique/${user.store.slug}` : '/profil' }] : []),
+                    ...(user?.role === 'ADMIN' ? [{ label: 'Administration', href: '/admin' }] : []),
+                    ...(!user ? [{ label: 'Connexion', href: '/connexion' }, { label: 'Créer un compte', href: '/inscription' }] : []),
+                  ].map((item) => (
+                    <a key={item.href} href={item.href} onClick={() => setSettingsOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-ink-muted transition-colors hover:bg-brand-50 hover:text-brand-800">
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           {user && (
             <div className="relative">
