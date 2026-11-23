@@ -10,13 +10,6 @@ import { Avatar } from '../ui/Avatar'
 import { Button, buttonStyles } from '../ui/Button'
 import { Logo } from '../ui/Logo'
 
-const links = [
-  { label: 'Explorer', href: '/recherche' },
-  { label: 'Produits', href: '/recherche?type=PRODUCT' },
-  { label: 'Services', href: '/recherche?type=SERVICE' },
-  { label: 'Vendeurs', href: '/#vendeurs' },
-]
-
 export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
   const { user, status, logout } = useAuth()
   const { itemCount } = useCart()
