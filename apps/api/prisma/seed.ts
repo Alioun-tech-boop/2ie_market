@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { generateReference } from '@2ie/shared'
 import '../src/config'
-import { hashPassword } from '../src/lib/password'
+import { hashPassword, verifyPassword } from '../src/lib/password'
 import { prisma } from '../src/lib/prisma'
 
 const email = (process.env.ADMIN_EMAIL ?? 'admin@2ie-market.local').toLowerCase()
@@ -235,36 +235,98 @@ async function seedDemoMarketplace() {
   console.log(`${DEMO_LISTINGS.length} annonces de démonstration publiées avec photos ; ${restored.count} services remis en disponibilité.`)
 }
 
-async function main() {
-  await seedCategories()
-  await seedMeetingPoints()
-  if (process.argv.includes('--reference-only')) {
-    await seedDemoMarketplace()
-    return
+async function seedAdminIfConfigured() {
+  const configuredEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+  const password = process.env.ADMIN_PASSWORD
+  if (!configuredEmail && !password) return
+  if (!configuredEmail || !password) {
+    throw new Error('ADMIN_EMAIL et ADMIN_PASSWORD doivent être définis ensemble.')
+  }
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(configuredEmail)) {
+    throw new Error('ADMIN_EMAIL doit être une adresse e-mail valide.')
+  }
+  if (password.length < 14) {
+    throw new Error('ADMIN_PASSWORD doit contenir au moins 14 caractères.')
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } })
+  const firstName = process.env.ADMIN_FIRST_NAME ?? 'Admin'
+  const lastName = process.env.ADMIN_LAST_NAME ?? '2IE Market'
+  const existing = await prisma.user.findUnique({ where: { email: configuredEmail } })
+
   if (existing) {
-    console.log(`Compte administrateur déjà présent : ${email}`)
+    const passwordMatches = await verifyPassword(existing.passwordHash, password)
+    if (existing.role === 'ADMIN' && existing.status === 'ACTIVE' && passwordMatches) {
+      console.log(`Compte administrateur vérifié : ${configuredEmail}`)
+      return
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: existing.id },
+        data: {
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          passwordHash: await hashPassword(password),
+          firstName,
+          lastName,
+        },
+      })
+      await tx.refreshToken.updateMany({
+        where: { userId: existing.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      })
+      await tx.auditLog.create({
+        data: {
+          action: 'ADMIN_BOOTSTRAPPED',
+          targetType: 'User',
+          targetId: existing.id,
+          meta: { email: configuredEmail, previousRole: existing.role },
+        },
+      })
+    })
+    console.log(`Compte administrateur sécurisé : ${configuredEmail}`)
     return
-  }
-  if (!password || password.length < 12) {
-    throw new Error('Définissez ADMIN_PASSWORD (12 caractères minimum) avant de créer le compte administrateur.')
   }
 
   const reference = generateReference('A', '0', 0)
   const admin = await prisma.user.create({
     data: {
-      email,
+      email: configuredEmail,
       passwordHash: await hashPassword(password),
       role: 'ADMIN',
       firstName,
       lastName,
       phoneE164: '+22600000000',
-      location: { create: { site: 'OUAGA', buildingNumber: 'A', roomNumber: '0', floor: 0, reference } },
+      location: {
+        create: {
+          site: 'OUAGA',
+          buildingNumber: 'A',
+          roomNumber: '0',
+          floor: 0,
+          reference,
+        },
+      },
     },
   })
-  console.log(`Administrateur créé : ${admin.email} (${reference})`)
+  await prisma.auditLog.create({
+    data: {
+      action: 'ADMIN_BOOTSTRAPPED',
+      targetType: 'User',
+      targetId: admin.id,
+      meta: { email: configuredEmail },
+    },
+  })
+  console.log(`Compte administrateur créé : ${configuredEmail}`)
+}
+
+async function main() {
+  await seedCategories()
+  await seedMeetingPoints()
+  await seedAdminIfConfigured()
+
+  if (process.argv.includes('--reference-only')) {
+    await seedDemoMarketplace()
+  }
 }
 
 main()
