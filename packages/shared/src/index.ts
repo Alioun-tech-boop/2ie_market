@@ -80,7 +80,7 @@ export const registerSchema = z
       .transform((value) => value.toLowerCase()),
     password: z
       .string()
-      .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+      .min(12, 'Le mot de passe doit contenir au moins 12 caractères.')
       .max(128)
       .regex(/[a-z]/, 'Ajoutez au moins une minuscule.')
       .regex(/[A-Z]/, 'Ajoutez au moins une majuscule.')
