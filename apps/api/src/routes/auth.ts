@@ -83,17 +83,28 @@ async function rotateRefresh(reply: FastifyReply, token: string): Promise<SelfUs
   }
 
   const rotated = newRefreshToken()
-  await prisma.$transaction([
-    prisma.refreshToken.update({ where: { id: record.id }, data: { revokedAt: new Date() } }),
-    prisma.refreshToken.create({
+  const now = new Date()
+  // Rotation atomique : deux requêtes simultanées ne peuvent pas réutiliser le même refresh token.
+  const claimed = await prisma.$transaction(async (tx) => {
+    const result = await tx.refreshToken.updateMany({
+      where: { id: record.id, revokedAt: null, expiresAt: { gt: now } },
+      data: { revokedAt: now },
+    })
+    if (result.count !== 1) return false
+    await tx.refreshToken.create({
       data: {
         userId: record.userId,
         tokenHash: hashRefreshToken(rotated),
-        expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
+        expiresAt: new Date(now.getTime() + REFRESH_TTL_MS),
       },
-    }),
-  ])
+    })
+    return true
+  })
 
+  if (!claimed) {
+    clearAuthCookies(reply)
+    return null
+  }
   setAuthCookies(reply, signAccessToken(record.userId), rotated)
   return currentUserDto(record.userId)
 }
@@ -162,7 +173,7 @@ export async function authRoutes(app: FastifyInstance) {
     return { user: await currentUserDto(user.id) }
   })
 
-  app.post('/auth/refresh', async (request, reply) => {
+  app.post('/auth/refresh', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (request, reply) => {
     const token = request.cookies.refresh_token
     if (!token) throw new HttpError(401, 'NO_REFRESH_TOKEN', 'Session introuvable.')
 
