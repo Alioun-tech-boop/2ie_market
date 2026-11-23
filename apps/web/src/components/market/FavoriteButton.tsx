@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Heart } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -19,15 +19,18 @@ export function FavoriteButton({
   const { isFavorite, toggle } = useFavorites()
   const navigate = useNavigate()
   const saved = isFavorite(listing.id)
+  const [pending, setPending] = useState(false)
 
   async function handleClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     event.stopPropagation()
+    if (pending) return
     if (status !== 'authenticated') {
       void navigate({ to: '/connexion' })
       return
     }
-    await toggle(listing)
+    setPending(true)
+    try { await toggle(listing) } finally { setPending(false) }
   }
 
   return (
@@ -35,10 +38,11 @@ export function FavoriteButton({
       type="button"
       onClick={(event) => void handleClick(event)}
       aria-pressed={saved}
+      disabled={pending}
       aria-label={saved ? `Retirer « ${listing.title} » des favoris` : `Enregistrer « ${listing.title} » dans les favoris`}
       title={saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border bg-white/95 text-xs font-semibold shadow-soft backdrop-blur transition-colors',
+        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border bg-white/95 text-xs font-semibold shadow-soft backdrop-blur transition-colors disabled:cursor-wait disabled:opacity-60',
         compact ? 'h-9 w-9' : 'h-11 px-4',
         saved
           ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
