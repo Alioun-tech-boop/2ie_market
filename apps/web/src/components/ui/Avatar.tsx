@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { cn } from '../../lib/cn'
 import type { Tone } from '../../lib/types'
 
@@ -29,6 +30,7 @@ export function Avatar({
   size?: keyof typeof sizes
   className?: string
 }) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const initials = name
     .split(' ')
     .filter(Boolean)
@@ -46,7 +48,9 @@ export function Avatar({
       )}
       aria-label={name}
     >
-      {src ? <img src={src} alt={name} className="h-full w-full rounded-full object-cover" /> : initials}
+      {src && failedSrc !== src ? (
+        <img src={src} alt={name} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailedSrc(src)} className="h-full w-full rounded-full object-cover" />
+      ) : initials}
     </span>
   )
 }
