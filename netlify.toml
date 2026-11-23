@@ -1,9 +1,19 @@
+"$schema" = "https://open-api.netlify.com/netlify.schema.json"
+
 [build]
   command = "npm run build --workspace=@2ie/web"
   publish = "apps/web/dist"
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Proxy API and uploaded assets through the frontend origin so auth cookies
+# remain first-party in the browser. Keep this rule before the SPA fallback.
+[[redirects]]
+  from = "/api/*"
+  to = "https://twoie-market-api-il32.onrender.com/:splat"
+  status = 200
+  force = true
 
 # React + TanStack Router: serve index.html for client-side routes.
 [[redirects]]
