@@ -38,11 +38,21 @@ export async function buildApp() {
     decorateReply: false,
   })
 
-  // Protection CSRF complémentaire : SameSite=Lax + contrôle de l'origine.
+  // En-têtes défensifs pour toutes les réponses de l'API.
+  app.addHook('onSend', async (_request, reply, payload) => {
+    reply.header('X-Content-Type-Options', 'nosniff')
+    reply.header('X-Frame-Options', 'DENY')
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+    reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+    return payload
+  })
+
+  // Protection CSRF : toute mutation issue du navigateur doit provenir du frontend officiel.
+  // Les requêtes sans Origin sont également refusées afin d'éviter le contournement du contrôle.
   app.addHook('onRequest', async (request) => {
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return
-    const origin = request.headers.origin
-    if (origin && origin !== config.frontendUrl) {
+    if (request.headers.origin !== config.frontendUrl) {
       throw new HttpError(403, 'ORIGIN_FORBIDDEN', 'Origine de la requête non autorisée.')
     }
   })
