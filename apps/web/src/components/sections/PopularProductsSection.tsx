@@ -37,11 +37,8 @@ export function PopularProductsSection({
       {loading ? (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="overflow-hidden rounded-2xl border border-line bg-white p-3">
-              <Skeleton className="aspect-[4/3] w-full rounded-xl" />
-              <Skeleton className="mt-4 h-4 w-2/3" />
-              <Skeleton className="mt-2 h-3 w-full" />
-              <Skeleton className="mt-2 h-3 w-4/5" />
+            <div key={index} className="aspect-square overflow-hidden rounded-2xl">
+              <Skeleton className="h-full w-full rounded-2xl" />
             </div>
           ))}
         </div>
