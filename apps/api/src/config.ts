@@ -13,15 +13,18 @@ if (!jwtSecret || jwtSecret.length < 32) {
   throw new Error('JWT_SECRET doit contenir au moins 32 caractères.')
 }
 
+const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+const secureCookies = process.env.NODE_ENV === 'production' || frontendUrl.startsWith('https://')
+
 export const config = {
   databaseUrl: process.env.DATABASE_URL ?? '',
   jwtSecret,
-  frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+  frontendUrl,
   // Render et les autres plateformes PaaS fournissent PORT. API_PORT reste
   // compatible avec le développement local existant.
   port: Number(process.env.PORT ?? process.env.API_PORT ?? 3000),
-  nodeEnv: process.env.NODE_ENV ?? 'development',
-  secureCookies: process.env.NODE_ENV === 'production',
+  nodeEnv: process.env.NODE_ENV ?? (secureCookies ? 'production' : 'development'),
+  secureCookies,
   uploadsDir: join(here, '..', 'uploads'),
   // Le service role key reste exclusivement côté API ; ne jamais l'exposer au frontend.
   supabaseUrl: process.env.SUPABASE_URL?.replace(/\/+$/, '') ?? '',
