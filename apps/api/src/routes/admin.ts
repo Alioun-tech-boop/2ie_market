@@ -308,7 +308,7 @@ export async function adminRoutes(app: FastifyInstance) {
       orderBy: { createdAt: 'asc' },
     })
     return {
-      applications: stores.map((store) => ({
+      applications: await Promise.all(stores.map(async (store) => ({
         id: store.id,
         status: store.approvalStatus,
         storeName: store.name,
@@ -327,7 +327,7 @@ export async function adminRoutes(app: FastifyInstance) {
           createdAt: store.owner.createdAt.toISOString(),
         },
         location: store.location,
-      })),
+      }))),
     }
   })
 
@@ -357,6 +357,9 @@ export async function adminRoutes(app: FastifyInstance) {
           reviewedAt: new Date(),
         },
       })
+      if (approved) {
+        await tx.user.update({ where: { id: store.ownerId }, data: { role: 'MERCHANT' } })
+      }
       await tx.auditLog.create({
         data: {
           actorId: request.user!.id,
