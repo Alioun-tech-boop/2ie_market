@@ -5,6 +5,7 @@ import { HttpError } from '../lib/errors'
 import { subscribeNotifications, toNotificationDto } from '../lib/notifications'
 import { prisma } from '../lib/prisma'
 import { authenticate } from '../middlewares/authenticate'
+import { runSubscriptionReminders } from '../lib/subscriptionReminders'
 
 const idParam = z.object({ id: z.string().uuid('Notification invalide.') })
 
@@ -12,6 +13,7 @@ export async function notificationRoutes(app: FastifyInstance) {
   const guard = { preHandler: [authenticate] }
 
   app.get('/notifications', guard, async (request) => {
+    await runSubscriptionReminders()
     const userId = request.user!.id
     const [notifications, unreadCount] = await Promise.all([
       prisma.notification.findMany({
