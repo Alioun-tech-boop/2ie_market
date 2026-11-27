@@ -60,6 +60,11 @@ export default function OrdersPage() {
   const { favorites, count: favoriteCount } = useFavorites()
   const search = useSearch({ strict: false }) as { section?: string }
   const [section, setSection] = useState<SectionId>(isSection(search.section) ? search.section : 'commandes')
+  function selectClientSection(value: string) {
+    if (!isSection(value)) return
+    setSection(value)
+    window.history.replaceState(null, '', `/espace-client?section=${encodeURIComponent(value)}`)
+  }
   const [groups, setGroups] = useState<OrderGroupDto[]>([])
   const [filter, setFilter] = useState<OrderStatus | ''>('')
   const [loading, setLoading] = useState(true)
@@ -98,7 +103,7 @@ export default function OrdersPage() {
     eyebrow: 'Espace client', title: 'Mon espace 2ie Market',
     description: 'Suivez vos commandes, retrouvez vos favoris et gérez vos informations.',
     items: nav, active: section,
-    onSelect: (id: string) => setSection(isSection(id) ? id : 'commandes'),
+    onSelect: selectClientSection,
     action: <Link to="/recherche" search={defaultSearchState} className={buttonStyles({ variant: 'primary' })}>Découvrir des annonces</Link>,
   }
 
