@@ -97,18 +97,16 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const markRead = useCallback(async (id: string) => {
     try {
+      const wasUnread = notifications.some((item) => item.id === id && !item.read)
       const { notification } = await notificationsApi.markRead(id)
-      let wasUnread = false
-      setNotifications((current) => current.map((item) => {
-        if (item.id !== id) return item
-        wasUnread = !item.read
-        return notification
-      }))
+      setNotifications((current) =>
+        current.map((item) => (item.id === id ? notification : item)),
+      )
       if (wasUnread && notification.read) setUnreadCount((count) => Math.max(0, count - 1))
     } catch {
       // Le badge reste inchangé en cas d'échec.
     }
-  }, [])
+  }, [notifications])
 
   const markAllRead = useCallback(async () => {
     try {
