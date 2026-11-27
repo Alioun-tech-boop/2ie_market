@@ -47,9 +47,9 @@ async function ownedListing(userId: string, id: string): Promise<ListingWithRela
   return listing
 }
 
-async function assertCategory(categoryId: string) {
+async function assertCategory(categoryId: string, allowArchived = false) {
   const category = await prisma.category.findFirst({
-    where: { id: categoryId, isActive: true },
+    where: { id: categoryId, ...(allowArchived ? {} : { isActive: true }) },
     select: { id: true },
   })
   if (!category) throw new HttpError(400, 'INVALID_CATEGORY', 'Catégorie invalide.')
@@ -238,6 +238,8 @@ export async function merchantRoutes(app: FastifyInstance) {
     // que le commerçant ne la déplace pas vers une autre catégorie.
     if (data.categoryId && data.categoryId !== current.categoryId) {
       await assertCategory(data.categoryId)
+    } else if (data.categoryId === current.categoryId) {
+      await assertCategory(data.categoryId, true)
     }
 
     const update: Prisma.ListingUpdateInput = {}
