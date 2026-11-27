@@ -6,6 +6,10 @@ import {
   Boxes,
   CheckCircle2,
   Clock3,
+  Copy,
+  Facebook,
+  Send,
+  Share2,
   Eye,
   FileEdit,
   MapPin,
@@ -87,6 +91,8 @@ export default function DashboardPage() {
   const [listingFilter, setListingFilter] = useState<ListingStatus | 'ALL'>('ALL')
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({})
   const lastSeenNotification = useRef<string | null>(null)
+
+  const [shareCopied, setShareCopied] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -214,6 +220,25 @@ export default function DashboardPage() {
   }
 
   const store = user?.store
+  const publicStoreUrl = store && typeof window !== 'undefined'
+    ? `${window.location.origin}/boutique/${encodeURIComponent(store.slug)}`
+    : ''
+  const shareText = store ? `Découvrez la boutique ${store.name} sur 2iE Market` : ''
+  const encodedStoreUrl = encodeURIComponent(publicStoreUrl)
+  const encodedShareText = encodeURIComponent(shareText)
+
+  async function copyStoreLink() {
+    if (!publicStoreUrl) return
+    try {
+      await navigator.clipboard.writeText(publicStoreUrl)
+      setShareCopied(true)
+      showToast({ tone: 'success', title: 'Lien copié', description: 'Vous pouvez maintenant le partager à vos clients.' })
+      window.setTimeout(() => setShareCopied(false), 2500)
+    } catch {
+      window.prompt('Copiez le lien de votre boutique :', publicStoreUrl)
+    }
+  }
+
   if (!data || !store) {
     return (
       <main className="container-premium py-16">
@@ -566,13 +591,64 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 border-t border-line bg-canvas px-6 py-4">
-              <Link to="/boutique/$slug" params={{ slug: store.slug }} className={buttonStyles({ variant: 'outline', size: 'sm' })}>
-                Voir ma boutique publique
-              </Link>
-              <a href="/profil?tab=boutique" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-                Modifier ma boutique
-              </a>
+            <div className="border-t border-line bg-canvas px-6 py-5">
+              <p className="text-xs font-extrabold text-ink">Partager ma boutique</p>
+              <p className="mt-1 text-xs text-ink-muted">Envoyez ce lien à vos clients pour leur permettre de consulter directement vos produits et services.</p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <input
+                  aria-label="Lien public de ma boutique"
+                  readOnly
+                  value={publicStoreUrl}
+                  onFocus={(event) => event.currentTarget.select()}
+                  className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-white px-3 text-xs font-medium text-ink"
+                />
+                <Button type="button" size="sm" onClick={() => void copyStoreLink()}>
+                  {shareCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {shareCopied ? 'Lien copié' : 'Copier le lien'}
+                </Button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a
+                  href={`https://wa.me/?text=${encodedShareText}%20${encodedStoreUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'outline', size: 'sm' })}
+                >
+                  <Share2 className="h-4 w-4" /> WhatsApp
+                </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodedStoreUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'outline', size: 'sm' })}
+                >
+                  <Facebook className="h-4 w-4" /> Facebook
+                </a>
+                <a
+                  href={`https://t.me/share/url?url=${encodedStoreUrl}&text=${encodedShareText}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'outline', size: 'sm' })}
+                >
+                  <Send className="h-4 w-4" /> Telegram
+                </a>
+                <a
+                  href={`https://twitter.com/intent/tweet?url=${encodedStoreUrl}&text=${encodedShareText}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'outline', size: 'sm' })}
+                >
+                  X
+                </a>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link to="/boutique/$slug" params={{ slug: store.slug }} className={buttonStyles({ variant: 'outline', size: 'sm' })}>
+                  Voir ma boutique publique
+                </Link>
+                <a href="/profil?tab=boutique" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                  Modifier ma boutique
+                </a>
+              </div>
             </div>
           </Card>
         </DashboardSection>
