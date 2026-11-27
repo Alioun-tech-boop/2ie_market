@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -28,11 +29,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationDto[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const seenIds = useRef(new Set<string>())
 
   const refresh = useCallback(async () => {
     try {
       const data = await notificationsApi.list()
       setNotifications(data.notifications)
+      seenIds.current = new Set(data.notifications.map((item) => item.id))
       setUnreadCount(data.unreadCount)
     } catch {
       // Une perte réseau ne doit jamais casser la navigation.
@@ -44,6 +47,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status !== 'authenticated') {
       setNotifications([])
+      seenIds.current.clear()
       setUnreadCount(0)
       return
     }
@@ -58,11 +62,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     const onNotification = (event: MessageEvent<string>) => {
       try {
         const incoming = JSON.parse(event.data) as NotificationDto
-        setNotifications((current) => [
-          incoming,
-          ...current.filter((item) => item.id !== incoming.id),
-        ].slice(0, 50))
-        setUnreadCount((count) => count + 1)
+        if (seenIds.current.has(incoming.id)) return
+        seenIds.current.add(incoming.id)
+        setNotifications((current) => [incoming, ...current].slice(0, 50))
+        if (!incoming.read) setUnreadCount((count) => count + 1)
         if (incoming.type !== 'ORDER_PLACED') {
           showToast({ title: incoming.title, description: incoming.message, tone: 'info' })
         }
@@ -95,10 +98,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const markRead = useCallback(async (id: string) => {
     try {
       const { notification } = await notificationsApi.markRead(id)
-      setNotifications((current) =>
-        current.map((item) => (item.id === id ? notification : item)),
-      )
-      setUnreadCount((count) => (notification.read ? Math.max(0, count - 1) : count))
+      let wasUnread = false
+      setNotifications((current) => current.map((item) => {
+        if (item.id !== id) return item
+        wasUnread = !item.read
+        return notification
+      }))
+      if (wasUnread && notification.read) setUnreadCount((count) => Math.max(0, count - 1))
     } catch {
       // Le badge reste inchangé en cas d'échec.
     }
