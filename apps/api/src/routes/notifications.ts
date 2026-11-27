@@ -8,6 +8,8 @@ import { authenticate } from '../middlewares/authenticate'
 import { runSubscriptionReminders } from '../lib/subscriptionReminders'
 
 const idParam = z.object({ id: z.string().uuid('Notification invalide.') })
+const activeStreams = new Map<string, number>()
+const MAX_STREAMS_PER_USER = 5
 
 export async function notificationRoutes(app: FastifyInstance) {
   const guard = { preHandler: [authenticate] }
@@ -51,10 +53,15 @@ export async function notificationRoutes(app: FastifyInstance) {
   })
 
   /** Server-Sent Events : temps réel dans cette instance, sans API externe. */
-  app.get('/notifications/stream', guard, async (request, reply) => {
+  app.get('/notifications/stream', { ...guard, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const userId = request.user!.id
+    const active = activeStreams.get(userId) ?? 0
+    if (active >= MAX_STREAMS_PER_USER) {
+      throw new HttpError(429, 'TOO_MANY_NOTIFICATION_STREAMS', 'Trop de connexions de notifications sont déjà ouvertes.')
+    }
     const unreadCount = await prisma.notification.count({ where: { userId, readAt: null } })
 
+    activeStreams.set(userId, active + 1)
     reply.hijack()
     const response = reply.raw
     response.writeHead(200, {
