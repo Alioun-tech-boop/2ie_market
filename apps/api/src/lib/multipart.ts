@@ -1,5 +1,6 @@
 import type { FastifyRequest } from 'fastify'
 import { config } from '../config'
+import { HttpError } from './errors'
 
 export interface UploadedFile {
   buffer: Buffer
@@ -12,7 +13,7 @@ export async function readMultipart(
   request: FastifyRequest,
   maxFiles = config.maxPhotosPerListing,
 ): Promise<{ fields: Record<string, string>; files: UploadedFile[] }> {
-  const fields: Record<string, string> = {}
+  const fields: Record<string, string> = Object.create(null) as Record<string, string>
   const files: UploadedFile[] = []
 
   for await (const part of request.parts({
@@ -46,6 +47,6 @@ export function parseJsonField<T>(value: string | undefined, fallback: T): T {
   try {
     return JSON.parse(value) as T
   } catch {
-    return fallback
+    throw new HttpError(400, 'INVALID_JSON_FIELD', 'Un champ du formulaire contient un JSON invalide.')
   }
 }
