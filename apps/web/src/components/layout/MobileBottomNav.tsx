@@ -26,7 +26,7 @@ export function MobileBottomNav({
   function handle(tab: MobileTab) {
     onChange(tab)
     if (tab === 'cart') void navigate({ to: '/panier' })
-    else if (tab === 'orders') void navigate(user?.store ? { to: '/tableau-de-bord' } : { to: '/commandes' })
+    else if (tab === 'orders') void navigate(user?.store ? { to: '/tableau-de-bord', search: { section: 'orders' } } : { to: '/commandes' })
     else if (tab === 'profile') void navigate({ to: user ? '/profil' : '/connexion' })
   }
 
