@@ -76,9 +76,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         showToast({ tone: 'info', title: 'Connexion requise', description: 'Connectez-vous pour continuer.' })
         return
       }
+      const version = requestVersion.current
       try {
         const result = await run()
-        setCart(result.cart)
+        if (version === requestVersion.current && status === 'authenticated') setCart(result.cart)
       } catch (cause) {
         showToast({ tone: 'info', title, description: errorMessage(cause) })
         throw cause
