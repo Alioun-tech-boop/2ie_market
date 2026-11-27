@@ -26,8 +26,11 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
 
   async function handleLogout() {
     setMenuOpen(false)
-    await logout()
-    await navigate({ to: '/' })
+    try {
+      await logout()
+    } finally {
+      await navigate({ to: '/' })
+    }
   }
 
   return (
