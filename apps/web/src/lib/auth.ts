@@ -54,11 +54,17 @@ export class ApiError extends Error {
 
 export const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '/api' : 'http://localhost:3000')
 
-/** Les chemins `/uploads/...` renvoyés par l'API sont servis par le backend. */
+/** Résout les URL d'images historiques (/uploads) et les URL publiques Supabase. */
 export function assetUrl(path: string | null | undefined): string | null {
-  if (!path) return null
-  if (/^https?:\/\//i.test(path)) return path
-  return `${API_URL}${path.startsWith('/') ? '' : '/'}${path}`
+  const value = path?.trim()
+  if (!value) return null
+  if (/^(https?:)?\/\//i.test(value) || /^(data:|blob:)/i.test(value)) return value
+  const base = API_URL.replace(/\/+$/, '')
+  const normalizedPath = value.startsWith('/') ? value : `/${value}`
+  if (base.endsWith('/api') && normalizedPath.startsWith('/api/')) {
+    return `${base}${normalizedPath.slice(4)}`
+  }
+  return `${base}${normalizedPath}`
 }
 
 let refreshInFlight: Promise<boolean> | null = null
