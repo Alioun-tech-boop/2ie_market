@@ -252,9 +252,10 @@ async function seedAdminIfConfigured() {
     // Le script de démarrage ne doit jamais promouvoir un compte existant,
     // réactiver un compte suspendu ni réinitialiser son mot de passe.
     if (existing.role !== 'ADMIN' || existing.status !== 'ACTIVE') {
-      throw new Error(
-        `ADMIN_EMAIL correspond à un compte existant qui n’est pas un administrateur actif. Aucun changement n’a été appliqué.`,
+      console.warn(
+        `ADMIN_EMAIL correspond à un compte existant non administrateur ou suspendu. Bootstrap ignoré sans modifier ce compte.`,
       )
+      return
     }
     console.log(`Compte administrateur existant conservé : ${configuredEmail}`)
     return
