@@ -278,6 +278,10 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.patch('/me/store', { preHandler: [authenticate, authorize('MERCHANT')] }, async (request) => {
+    const store = await prisma.store.findUnique({ where: { ownerId: request.user!.id }, select: { approvalStatus: true } })
+    if (!store || store.approvalStatus !== 'APPROVED') {
+      throw new HttpError(403, 'MERCHANT_NOT_APPROVED', 'La boutique sera modifiable après validation administrative.')
+    }
     const data = updateStoreSchema.parse(request.body)
     const update: {
       name?: string
@@ -310,6 +314,10 @@ export async function authRoutes(app: FastifyInstance) {
     const stored = await storeOptimizedImage(await part.toBuffer(), part.mimetype)
 
     if (kind === 'logo') {
+      const store = await prisma.store.findUnique({ where: { ownerId: request.user!.id }, select: { approvalStatus: true } })
+      if (!store || store.approvalStatus !== 'APPROVED') {
+        throw new HttpError(403, 'MERCHANT_NOT_APPROVED', 'Le logo de la boutique sera modifiable après validation administrative.')
+      }
       await prisma.store.update({ where: { ownerId: request.user!.id }, data: { logoUrl: stored.url } })
     } else {
       await prisma.user.update({ where: { id: request.user!.id }, data: { profilePhotoUrl: stored.url } })
