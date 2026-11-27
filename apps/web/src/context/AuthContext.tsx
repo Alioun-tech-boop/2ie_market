@@ -83,9 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    await authApi.logout()
-    setUser(null)
-    setStatus('guest')
+    try {
+      await authApi.logout()
+    } catch {
+      // Ferme aussi la session locale si l'API est momentanément indisponible.
+    } finally {
+      setUser(null)
+      setStatus('guest')
+    }
   }, [])
 
   const updateProfile = useCallback(
