@@ -46,6 +46,9 @@ const profileRoute = createRoute({
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
+  validateSearch: (search: Record<string, unknown>): { section?: string } => ({
+    section: typeof search.section === 'string' ? search.section : undefined,
+  }),
   component: () => (
     <RequireAuth roles={ADMINS}>
       <AdminPage />
