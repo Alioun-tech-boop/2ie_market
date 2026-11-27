@@ -142,7 +142,15 @@ function formWithFields(fields, files = []) {
 }
 
 async function register(client, payload) {
-  const response = await client.post('/v1/auth/register', payload)
+  let response
+  if (payload.role === 'MERCHANT') {
+    const form = new FormData()
+    form.append('payload', JSON.stringify(payload))
+    form.append('photos', new Blob([validPng], { type: 'image/png' }), 'seller-payment-proof.png')
+    response = await client.request('/v1/auth/register', { method: 'POST', form })
+  } else {
+    response = await client.post('/v1/auth/register', payload)
+  }
   expectStatus(response, 201, `inscription ${payload.email}`)
   return response.data.user
 }
@@ -274,7 +282,6 @@ await check('Inscription commerçant 1 avec boutique', async () => {
     floor: 1,
     storeName: `Boutique Audit 1 ${RUN}`,
     description: 'Boutique de test créée pour l’audit complet de la marketplace 2ie Market.',
-    whatsapp: '+22670000002',
   })
   assert.equal(merchant1User.role, 'MERCHANT')
   assert.ok(merchant1User.store?.id, 'boutique attendue')
@@ -294,7 +301,6 @@ await check('Inscription commerçant 2 avec boutique', async () => {
     floor: 2,
     storeName: `Boutique Audit 2 ${RUN}`,
     description: 'Seconde boutique de test pour vérifier la répartition multi-commerçants.',
-    whatsapp: '+22670000003',
   })
   assert.equal(merchant2User.role, 'MERCHANT')
   assert.ok(merchant2User.store?.id, 'boutique attendue')
@@ -344,11 +350,10 @@ await check('Modification de la boutique', async () => {
   const response = await merchant1.patch('/v1/me/store', {
     name: `Boutique Audit 1 modifiée ${RUN}`,
     description: 'Description mise à jour pour vérifier la modification de la boutique marchande.',
-    whatsapp: '+22670000012',
     deliveryModes: ['HAND_DELIVERY', 'MEETUP_POINT'],
   })
   expectStatus(response, 200, 'modification boutique')
-  assert.equal(response.data.user.store.whatsapp, '+22670000012')
+  assert.equal(response.data.user.store.whatsapp, undefined, 'WhatsApp doit rester absent du profil boutique')
 })
 
 await check('Chargement des catégories publiques', async () => {
@@ -418,7 +423,7 @@ await check('Détail public d’une annonce', async () => {
   const response = await client.get(`/v1/listings/${product1.id}`)
   expectStatus(response, 200, 'détail annonce')
   assert.equal(response.data.listing.id, product1.id)
-  assert.equal(response.data.listing.store.whatsapp, '+22670000012')
+  assert.equal(response.data.listing.store.whatsapp, undefined, 'WhatsApp doit rester absent du catalogue public')
   assert.equal(response.data.listing.store.site, 'KAMBOINSIN')
   assert.equal(response.data.listing.quantity, 3)
 })
@@ -909,7 +914,7 @@ await check('Limitation des tentatives de connexion', async () => {
     const response = await new ApiClient(`rate-${index}`).post(
       '/v1/auth/login',
       { email: `absent.${RUN}@audit.local`, password: 'Wrong-Password-1' },
-      { headers: { 'x-forwarded-for': `203.0.113.${index + 1}` } },
+      {},
     )
     statuses.push(response.status)
   }
