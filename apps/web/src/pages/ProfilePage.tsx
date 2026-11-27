@@ -147,8 +147,28 @@ export default function ProfilePage() {
           </div>
         </Card>
 
+        {user.role === 'MERCHANT' && user.store?.approvalStatus !== 'APPROVED' && (
+          <Card className={user.store?.approvalStatus === 'REJECTED' ? 'border-rose-200 bg-rose-50 p-5' : 'border-amber-200 bg-amber-50 p-5'}>
+            <div className="flex items-start gap-3">
+              <AlertCircle className={user.store?.approvalStatus === 'REJECTED' ? 'mt-0.5 h-5 w-5 shrink-0 text-rose-600' : 'mt-0.5 h-5 w-5 shrink-0 text-amber-600'} />
+              <div>
+                <h2 className="text-sm font-extrabold text-ink">
+                  {user.store?.approvalStatus === 'REJECTED' ? 'Votre demande vendeur a été refusée' : 'Votre demande vendeur est en cours de vérification'}
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+                  {user.store?.approvalStatus === 'REJECTED'
+                    ? 'Votre boutique reste désactivée. Consultez le motif ci-dessous et contactez l’administration pour régulariser votre dossier.'
+                    : 'Votre preuve de paiement de 1 000 FCFA a été transmise à l’administration. Vous pourrez accéder à votre espace vendeur et publier des annonces dès que votre demande sera validée.'}
+                </p>
+                {user.store?.reviewNote && <p className="mt-2 rounded-lg bg-white/70 p-3 text-xs font-semibold text-ink">Note de l’administration : {user.store.reviewNote}</p>}
+                <p className="mt-2 text-[11px] font-bold text-ink-muted">Statut : {user.store?.approvalStatus === 'REJECTED' ? 'Refusée' : 'En attente'}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <div className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-white p-1.5 scrollbar-none">
-          {tabs.filter((item) => !item.merchantOnly || user.role === 'MERCHANT').map((item) => {
+          {tabs.filter((item) => !item.merchantOnly || (user.role === 'MERCHANT' && user.store?.approvalStatus === 'APPROVED')).map((item) => {
             const Icon = item.icon
             return (
               <button
