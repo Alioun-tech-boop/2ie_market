@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const { showToast } = useToast()
   const [tab, setTab] = useState<Tab>(() => {
     const requested = new URLSearchParams(window.location.search).get('tab')
-    return requested === 'notifications' ? 'notifications' : requested === 'boutique' ? 'boutique' : 'infos'
+    return requested === 'notifications' ? 'notifications' : requested === 'boutique' ? 'boutique' : requested === 'localisation' ? 'localisation' : 'infos'
   })
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
