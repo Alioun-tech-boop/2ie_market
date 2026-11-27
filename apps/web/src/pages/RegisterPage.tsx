@@ -167,20 +167,20 @@ export default function RegisterPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-extrabold text-brand-950">Frais d’ouverture vendeur</p>
-                  <p className="mt-1 text-xs leading-relaxed text-brand-800">1 000 FCFA — téléversez une capture ou une photo lisible du justificatif de paiement. L’administration vérifiera le document avant d’activer votre boutique.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-brand-800">1 000 FCFA — téléversez une capture, une photo ou un PDF lisible du justificatif de paiement. L’administration vérifiera le document avant d’activer votre boutique.</p>
                 </div>
                 <span className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-black text-brand-900">1 000 F</span>
               </div>
-              <label htmlFor="seller-payment-proof" className="mt-4 block text-xs font-bold text-ink">Preuve de paiement (image obligatoire)</label>
+              <label htmlFor="seller-payment-proof" className="mt-4 block text-xs font-bold text-ink">Preuve de paiement (image ou PDF obligatoire)</label>
               <input
                 id="seller-payment-proof"
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
                 onChange={(event) => setPaymentProof(event.target.files?.[0] ?? null)}
                 className="mt-2 block w-full rounded-xl border border-brand-200 bg-white p-3 text-xs text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-brand-800 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white"
                 required
               />
-              <p className="mt-1.5 text-[11px] text-brand-800">{paymentProof ? paymentProof.name : 'Formats acceptés : JPG, PNG ou WebP. 2 Mo maximum.'}</p>
+              <p className="mt-1.5 text-[11px] text-brand-800">{paymentProof ? paymentProof.name : 'Formats acceptés : JPG, PNG, WebP ou PDF. 2 Mo maximum.'}</p>
             </div>
             <div>
               <label htmlFor="register-description" className="mb-2 block text-sm font-semibold text-ink">
