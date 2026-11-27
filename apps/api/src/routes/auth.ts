@@ -19,6 +19,7 @@ import { storeOptimizedImage } from '../lib/images'
 import { hashPassword, verifyPassword } from '../lib/password'
 import { prisma } from '../lib/prisma'
 import { uniqueSlug } from '../lib/slug'
+import { readMultipart } from '../lib/multipart'
 import {
   hashRefreshToken,
   newRefreshToken,
@@ -111,7 +112,27 @@ async function rotateRefresh(reply: FastifyReply, token: string): Promise<SelfUs
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/auth/register', AUTH_RATE_LIMIT, async (request, reply) => {
-    const data = registerSchema.parse(request.body)
+    let data: ReturnType<typeof registerSchema.parse>
+    let paymentProofUrl: string | null = null
+    if (request.isMultipart()) {
+      const { fields, files } = await readMultipart(request, 1)
+      if (!fields.payload) throw new HttpError(400, 'REGISTRATION_DATA_REQUIRED', 'Les informations du compte sont manquantes.')
+      let payload: unknown
+      try {
+        payload = JSON.parse(fields.payload)
+      } catch {
+        throw new HttpError(400, 'INVALID_REGISTRATION_DATA', 'Les informations du compte sont invalides.')
+      }
+      data = registerSchema.parse(payload)
+      if (data.role !== 'MERCHANT') throw new HttpError(400, 'INVALID_REGISTRATION_ROLE', 'Ce formulaire est réservé aux vendeurs.')
+      if (!files[0]) throw new HttpError(400, 'PAYMENT_PROOF_REQUIRED', 'Téléversez la preuve de paiement des frais vendeur.')
+      paymentProofUrl = (await storeOptimizedImage(files[0].buffer, files[0].mimetype)).url
+    } else {
+      data = registerSchema.parse(request.body)
+      if (data.role === 'MERCHANT') {
+        throw new HttpError(400, 'PAYMENT_PROOF_REQUIRED', 'Une preuve de paiement de 1 000 FCFA est obligatoire pour créer un compte vendeur.')
+      }
+    }
 
     const existing = await prisma.user.findUnique({ where: { email: data.email } })
     if (existing) {
@@ -147,6 +168,9 @@ export async function authRoutes(app: FastifyInstance) {
                   whatsappE164: toE164(data.whatsapp!)!,
                   location: { create: locationData },
                   deliveryModes: DEFAULT_DELIVERY_MODES,
+                  isActive: data.role !== 'MERCHANT',
+                  approvalStatus: data.role === 'MERCHANT' ? 'PENDING' : 'APPROVED',
+                  paymentProofUrl,
                 },
               }
             : undefined,
