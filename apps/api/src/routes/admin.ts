@@ -6,7 +6,7 @@ import { authenticate } from '../middlewares/authenticate'
 import { authorize } from '../middlewares/authorize'
 import { toAdminUser } from '../lib/dto'
 import { HttpError } from '../lib/errors'
-import { storeOptimizedImage } from '../lib/images'
+import { signedPrivateImageUrl, storeOptimizedImage } from '../lib/images'
 import { listingReference } from '../lib/marketDto'
 import { readMultipart } from '../lib/multipart'
 import { getPlatformSettings, toPlatformDto } from '../lib/platform'
@@ -315,7 +315,7 @@ export async function adminRoutes(app: FastifyInstance) {
         description: store.description,
         whatsapp: store.whatsappE164,
         paymentAmount: 1000,
-        paymentProofUrl: store.paymentProofUrl,
+        paymentProofUrl: await signedPrivateImageUrl(store.paymentProofUrl),
         reviewNote: store.reviewNote,
         createdAt: store.createdAt.toISOString(),
         owner: {
