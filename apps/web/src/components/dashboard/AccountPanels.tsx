@@ -102,8 +102,11 @@ export function SettingsPanel({ user }: { user: SelfUser }) {
         iconLeft={<LogOut className="h-4 w-4" />}
         onClick={() => {
           void (async () => {
-            await logout()
-            await navigate({ to: '/' })
+            try {
+              await logout()
+            } finally {
+              await navigate({ to: '/' })
+            }
           })()
         }}
       >
