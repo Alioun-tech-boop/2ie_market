@@ -137,20 +137,29 @@ export async function subscriptionRoutes(app: FastifyInstance) {
     const approved = payload.decision === 'APPROVE'
     const now = new Date()
     await prisma.$transaction(async (tx) => {
-      await tx.merchantSubscriptionPayment.update({
-        where: { id },
+      // Un paiement ne peut être validé/refusé qu'une seule fois, même en cas
+      // de clics concurrents de plusieurs administrateurs.
+      const claimed = await tx.merchantSubscriptionPayment.updateMany({
+        where: { id, status: 'PENDING' },
         data: { status: approved ? 'APPROVED' : 'REJECTED', reviewNote: payload.note?.trim() || null, reviewedAt: now },
       })
+      if (claimed.count !== 1) {
+        throw new HttpError(409, 'SUBSCRIPTION_PAYMENT_REVIEWED', 'Ce renouvellement a déjà été traité.')
+      }
       if (approved) {
-        const base = payment.store.subscriptionExpiresAt && payment.store.subscriptionExpiresAt > now
-          ? payment.store.subscriptionExpiresAt
+        const currentStore = await tx.store.findUniqueOrThrow({
+          where: { id: payment.storeId },
+          select: { subscriptionExpiresAt: true, owner: { select: { status: true } } },
+        })
+        const base = currentStore.subscriptionExpiresAt && currentStore.subscriptionExpiresAt > now
+          ? currentStore.subscriptionExpiresAt
           : now
         await tx.store.update({
           where: { id: payment.storeId },
           data: {
             subscriptionExpiresAt: addOneMonth(base),
             lastSubscriptionReminderAt: null,
-            isActive: payment.store.owner.status === 'ACTIVE',
+            isActive: currentStore.owner.status === 'ACTIVE',
           },
         })
       }
