@@ -328,7 +328,7 @@ export default function CartPage() {
                   </Button>
                 )}
                 <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-                  L'accord sur la remise se fait directement avec le commerçant via WhatsApp.
+                  La commande est confirmée automatiquement. Le vendeur reçoit une notification et peut l'annuler depuis son espace.
                 </p>
               </Card>
             </aside>
