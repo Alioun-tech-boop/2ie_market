@@ -15,6 +15,14 @@
   status = 200
   force = true
 
+# Les images locales publiques sont servies par le backend.
+# Les justificatifs vendeur sont bloqués par l'API et ne sont jamais publics.
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://twoie-market-api-il32.onrender.com/uploads/:splat"
+  status = 200
+  force = true
+
 # React + TanStack Router: serve index.html for client-side routes.
 [[redirects]]
   from = "/*"
