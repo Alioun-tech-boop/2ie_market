@@ -122,11 +122,6 @@ export const updateStoreSchema = z
   .object({
     name: z.string().trim().min(2).max(120).optional(),
     description: z.string().trim().min(20).max(2000).optional(),
-    whatsapp: z
-      .string()
-      .trim()
-      .refine((value) => toE164(value) !== null, 'Numéro WhatsApp invalide.')
-      .optional(),
     logoUrl: z.string().trim().max(500).optional().nullable(),
     deliveryModes: z.array(z.enum(DELIVERY_MODES)).min(1).optional(),
   })
