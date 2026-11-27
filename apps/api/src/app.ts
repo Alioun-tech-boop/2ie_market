@@ -23,7 +23,9 @@ import { runSubscriptionReminders } from './lib/subscriptionReminders'
 export async function buildApp() {
   const app = Fastify({
     logger: { level: config.nodeEnv === 'production' ? 'info' : 'warn' },
-    trustProxy: true,
+    // Render ajoute l’adresse cliente comme dernier saut de X-Forwarded-For.
+    // Ne jamais faire confiance à toute la chaîne fournie par le client.
+    trustProxy: 1,
   })
 
   mkdirSync(config.uploadsDir, { recursive: true })
