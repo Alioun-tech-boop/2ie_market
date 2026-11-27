@@ -309,7 +309,7 @@ export default function ListingPage() {
               <ReportListingButton listingId={listing.id} />
             </div>
             <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-              Message prérempli sur WhatsApp, aucun envoi automatique. La commande et la remise s’organisent directement avec le commerçant. Aucun paiement en ligne.
+              La commande et la remise s’organisent directement avec le commerçant. Aucun paiement en ligne.
             </p>
           </div>
         </section>
