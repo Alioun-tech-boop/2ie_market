@@ -92,7 +92,7 @@ function contentFor(type: NotificationType, payload: Record<string, unknown>) {
       return {
         title: 'Nouveau renouvellement vendeur',
         message: 'Un vendeur a transmis une preuve de paiement de 1 000 FCFA. Vérifiez-la dans l’administration.',
-        href: '/administration?section=subscription-renewals',
+        href: '/admin?section=subscription-renewals',
       }
     case 'SUBSCRIPTION_PAYMENT_APPROVED':
       return {
