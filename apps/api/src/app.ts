@@ -1,4 +1,5 @@
 import { mkdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { isIP } from 'node:net'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
@@ -32,15 +33,38 @@ export async function buildApp() {
   await app.register(cors, { origin: config.frontendUrl, credentials: true })
   await app.register(rateLimit, {
     global: true,
-    max: 200,
+    max: 1000,
     timeWindow: '1 minute',
-    // Render transmet CF-Connecting-IP depuis Cloudflare. On ne fait jamais
-    // confiance à X-Forwarded-For, qui peut contenir des valeurs fournies par le client.
+    hook: 'preHandler',
+    // Ne jamais faire confiance à X-Forwarded-For. Sur Render, CF-Connecting-IP
+    // est injecté par Cloudflare ; les routes d'authentification ajoutent aussi
+    // l'e-mail ou le jeton de session à la clé pour éviter de partager le quota
+    // entre tous les visiteurs passant par le proxy Netlify.
     keyGenerator: (request) => {
       const cloudflareIp = config.nodeEnv === 'production'
         ? request.headers['cf-connecting-ip']
         : undefined
-      return typeof cloudflareIp === 'string' && isIP(cloudflareIp) ? cloudflareIp : request.ip
+      const ip = typeof cloudflareIp === 'string' && isIP(cloudflareIp)
+        ? cloudflareIp
+        : request.ip
+      const path = request.url.split('?')[0] ?? request.url
+
+      if (path.endsWith('/auth/login') || path.endsWith('/auth/register')) {
+        const email = (request.body as { email?: unknown } | undefined)?.email
+        if (typeof email === 'string' && email.trim()) {
+          return `${ip}:auth:${email.trim().toLowerCase()}`
+        }
+      }
+
+      if (path.endsWith('/auth/refresh')) {
+        const token = request.cookies?.refresh_token
+        if (typeof token === 'string' && token) {
+          const digest = createHash('sha256').update(token).digest('hex')
+          return `${ip}:refresh:${digest}`
+        }
+      }
+
+      return ip
     },
   })
   await app.register(multipart, {
