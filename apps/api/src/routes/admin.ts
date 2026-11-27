@@ -353,6 +353,8 @@ export async function adminRoutes(app: FastifyInstance) {
         data: {
           approvalStatus: approved ? 'APPROVED' : 'REJECTED',
           isActive: approved && store.owner.status === 'ACTIVE',
+          subscriptionExpiresAt: approved ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null,
+          lastSubscriptionReminderAt: null,
           reviewNote: payload.note?.trim() || null,
           reviewedAt: new Date(),
         },
