@@ -12,35 +12,68 @@ export async function runSubscriptionReminders(): Promise<void> {
   const stores = await prisma.store.findMany({
     where: {
       approvalStatus: 'APPROVED',
-      subscriptionExpiresAt: { lte: horizon },
       OR: [
-        { lastSubscriptionReminderAt: null },
-        { lastSubscriptionReminderAt: { lt: today } },
+        { subscriptionExpiresAt: { lte: horizon } },
+        { subscriptionExpiresAt: null },
+      ],
+      AND: [
+        {
+          OR: [
+            { lastSubscriptionReminderAt: null },
+            { lastSubscriptionReminderAt: { lt: today } },
+          ],
+        },
       ],
     },
-    select: {
-      id: true,
-      name: true,
-      ownerId: true,
-      subscriptionExpiresAt: true,
-    },
+    select: { id: true },
     take: 500,
   })
   if (!stores.length) return
+
   const admins = await prisma.user.findMany({
     where: { role: 'ADMIN', status: 'ACTIVE' },
     select: { id: true },
   })
-  for (const store of stores) {
-    const expired = !store.subscriptionExpiresAt || store.subscriptionExpiresAt <= now
+
+  for (const candidate of stores) {
     await prisma.$transaction(async (tx) => {
-      await tx.store.update({
-        where: { id: store.id },
-        data: {
-          ...(expired ? { isActive: false } : {}),
-          lastSubscriptionReminderAt: now,
+      // La réservation conditionnelle empêche deux exécutions simultanées
+      // (scheduler + requête notifications) d'émettre le même rappel.
+      const claimed = await tx.store.updateMany({
+        where: {
+          id: candidate.id,
+          approvalStatus: 'APPROVED',
+          OR: [
+            { subscriptionExpiresAt: { lte: horizon } },
+            { subscriptionExpiresAt: null },
+          ],
+          AND: [
+            {
+              OR: [
+                { lastSubscriptionReminderAt: null },
+                { lastSubscriptionReminderAt: { lt: today } },
+              ],
+            },
+          ],
         },
+        data: { lastSubscriptionReminderAt: now },
       })
+      if (claimed.count !== 1) return
+
+      const store = await tx.store.findUnique({
+        where: { id: candidate.id },
+        select: { id: true, name: true, ownerId: true, subscriptionExpiresAt: true },
+      })
+      if (!store) return
+
+      const expired = !store.subscriptionExpiresAt || store.subscriptionExpiresAt <= now
+      if (expired) {
+        await tx.store.update({
+          where: { id: store.id },
+          data: { isActive: false },
+        })
+      }
+
       await tx.notification.create({
         data: {
           userId: store.ownerId,
