@@ -3,7 +3,6 @@ import { ImageOff } from 'lucide-react'
 import { assetUrl } from '../../lib/auth'
 import type { Listing } from '../../lib/market'
 import { FavoriteButton } from './FavoriteButton'
-import { WhatsappButton } from './WhatsappButton'
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const photo = assetUrl(listing.photos[0]?.thumbUrl ?? listing.photos[0]?.url)
@@ -53,13 +52,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
       </Link>
 
       <FavoriteButton listing={listing} compact className="absolute right-2.5 top-2.5 z-10 border-0 shadow-md" />
-      <WhatsappButton
-        phone={listing.store.whatsapp}
-        message={`Bonjour, je souhaite avoir des informations sur « ${listing.title} » sur 2ie Market.`}
-        compact
-        title="Contacter le vendeur sur WhatsApp"
-        className="absolute bottom-2.5 right-2.5 z-10 border-0 shadow-md"
-      />
     </article>
   )
 }
