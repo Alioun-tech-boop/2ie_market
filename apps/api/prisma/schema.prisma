@@ -24,6 +24,12 @@ enum MerchantApprovalStatus {
   REJECTED
 }
 
+enum MerchantSubscriptionPaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum Site {
   KAMBOINSIN
   OUAGA
@@ -75,6 +81,11 @@ enum NotificationType {
   NEW_ORDER
   ORDER_STATUS
   LISTING_ARCHIVED
+  SUBSCRIPTION_REMINDER
+  SUBSCRIPTION_EXPIRED
+  SUBSCRIPTION_PAYMENT_SUBMITTED
+  SUBSCRIPTION_PAYMENT_APPROVED
+  SUBSCRIPTION_PAYMENT_REJECTED
 }
 
 enum ReportReason {
@@ -155,6 +166,9 @@ model Store {
   paymentProofUrl String?     @map("payment_proof_url") @db.VarChar(500)
   reviewNote     String?       @map("review_note") @db.VarChar(500)
   reviewedAt     DateTime?     @map("reviewed_at")
+  subscriptionExpiresAt DateTime? @map("subscription_expires_at")
+  lastSubscriptionReminderAt DateTime? @map("last_subscription_reminder_at")
+  subscriptionPayments MerchantSubscriptionPayment[]
   listings      Listing[]
   cartNotes     CartNote[]
   orders        Order[]
@@ -164,7 +178,24 @@ model Store {
 
   @@index([isActive])
   @@index([locationId, isActive])
+  @@index([subscriptionExpiresAt])
   @@map("stores")
+}
+
+model MerchantSubscriptionPayment {
+  id          String                              @id @default(uuid()) @db.Uuid
+  storeId     String                              @map("store_id") @db.Uuid
+  store       Store                               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  amount      Int                                 @default(1000)
+  proofPath   String                              @map("proof_path") @db.VarChar(500)
+  status      MerchantSubscriptionPaymentStatus   @default(PENDING)
+  reviewNote  String?                             @map("review_note") @db.VarChar(500)
+  submittedAt DateTime                            @default(now()) @map("submitted_at")
+  reviewedAt  DateTime?                           @map("reviewed_at")
+
+  @@index([storeId, status, submittedAt])
+  @@index([status, submittedAt])
+  @@map("merchant_subscription_payments")
 }
 
 model RefreshToken {
