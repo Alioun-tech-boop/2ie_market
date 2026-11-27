@@ -17,7 +17,6 @@ export interface CartDto {
       slug: string
       logoUrl: string | null
       site: Site
-      whatsapp: string
       deliveryModes: DeliveryMode[]
     }
     note: string
@@ -76,7 +75,6 @@ export interface OrderDto {
     name: string
     slug: string
     logoUrl: string | null
-    whatsapp: string
     site: Site
   }
   items: OrderItemDto[]
