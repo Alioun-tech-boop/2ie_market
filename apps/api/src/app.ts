@@ -1,4 +1,5 @@
 import { mkdirSync } from 'node:fs'
+import { isIP } from 'node:net'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
@@ -23,16 +24,25 @@ import { runSubscriptionReminders } from './lib/subscriptionReminders'
 export async function buildApp() {
   const app = Fastify({
     logger: { level: config.nodeEnv === 'production' ? 'info' : 'warn' },
-    // Render ajoute l’adresse cliente comme dernier saut de X-Forwarded-For.
-    // Ne jamais faire confiance à toute la chaîne fournie par le client.
-    trustProxy: 1,
   })
 
   mkdirSync(config.uploadsDir, { recursive: true })
 
   await app.register(cookie)
   await app.register(cors, { origin: config.frontendUrl, credentials: true })
-  await app.register(rateLimit, { global: true, max: 200, timeWindow: '1 minute' })
+  await app.register(rateLimit, {
+    global: true,
+    max: 200,
+    timeWindow: '1 minute',
+    // Render transmet CF-Connecting-IP depuis Cloudflare. On ne fait jamais
+    // confiance à X-Forwarded-For, qui peut contenir des valeurs fournies par le client.
+    keyGenerator: (request) => {
+      const cloudflareIp = config.nodeEnv === 'production'
+        ? request.headers['cf-connecting-ip']
+        : undefined
+      return typeof cloudflareIp === 'string' && isIP(cloudflareIp) ? cloudflareIp : request.ip
+    },
+  })
   await app.register(multipart, {
     limits: { fileSize: config.maxPhotoBytes, files: config.maxPhotosPerListing },
   })
