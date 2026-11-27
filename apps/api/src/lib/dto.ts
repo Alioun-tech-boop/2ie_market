@@ -40,7 +40,6 @@ export interface SelfUser {
     deliveryModes: DeliveryMode[]
     isActive: boolean
     approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
-    paymentProofUrl: string | null
     reviewNote: string | null
     reviewedAt: string | null
     createdAt: string
@@ -78,7 +77,6 @@ export function toSelfUser(user: AuthUserRecord): SelfUser {
           deliveryModes: user.store.deliveryModes,
           isActive: user.store.isActive,
           approvalStatus: user.store.approvalStatus,
-          paymentProofUrl: user.store.paymentProofUrl,
           reviewNote: user.store.reviewNote,
           reviewedAt: user.store.reviewedAt?.toISOString() ?? null,
           createdAt: user.store.createdAt.toISOString(),
