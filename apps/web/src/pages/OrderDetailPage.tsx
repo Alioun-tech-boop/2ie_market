@@ -9,7 +9,6 @@ import {
   DoorOpen,
   Layers3,
   MapPin,
-  MessageCircle,
   Package,
   ShoppingBag,
   Store as StoreIcon,
@@ -21,9 +20,8 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { Price } from '../components/ui/Price'
 import { Skeleton } from '../components/ui/Skeleton'
 import { useToast } from '../components/ui/Toast'
-import { formatPrice, siteLabel, whatsappLink } from '../lib/format'
+import { formatPrice, siteLabel } from '../lib/format'
 import { shortTypeLabels } from '../lib/listingLabels'
-import { orderWhatsappMessage } from '../lib/whatsapp'
 import {
   deliveryModeLabels,
   orderStatusLabels,
@@ -111,8 +109,7 @@ export default function OrderDetailPage() {
             <div>
               <p className="text-sm font-bold text-emerald-800">Commande enregistrée</p>
               <p className="mt-1 text-xs leading-relaxed text-emerald-700">
-                Votre commande est bien enregistrée sous la référence {group.reference}. Finalisez l’accord directement
-                avec chaque commerçant via WhatsApp ; les liens sont disponibles ci-dessous. Aucun message n’est envoyé automatiquement.
+                Votre commande est confirmée automatiquement sous la référence {group.reference}. Chaque commerçant concerné reçoit une notification et peut gérer la commande depuis son espace vendeur.
               </p>
             </div>
           </div>
@@ -177,14 +174,6 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone={orderStatusTones[order.status]} dot>{orderStatusLabels[order.status]}</Badge>
-                    <a
-                      href={whatsappLink(order.merchant.whatsapp, orderWhatsappMessage(order))}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-50 px-3 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
-                    >
-                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                    </a>
                   </div>
                 </div>
 
@@ -237,7 +226,7 @@ export default function OrderDetailPage() {
         {group.orders.some((order) => order.status === 'REJECTED' || order.status === 'CANCELLED') && (
           <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-line bg-white px-4 py-3 text-xs text-ink-muted">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent-600" />
-            Une sous-commande a été refusée ou annulée : contactez le commerçant concerné via WhatsApp pour en savoir plus.
+            Une sous-commande a été annulée. Son statut et son historique restent consultables dans votre suivi de commande.
           </div>
         )}
 
