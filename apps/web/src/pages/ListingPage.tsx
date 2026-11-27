@@ -6,7 +6,6 @@ import {
   Clock3,
   ImageOff,
   MapPin,
-  MessageCircle,
   Minus,
   Package,
   Plus,
@@ -16,7 +15,7 @@ import {
 import { FavoriteButton } from '../components/market/FavoriteButton'
 import { ReportListingButton } from '../components/market/ReportListingButton'
 import { Badge } from '../components/ui/Badge'
-import { Button, buttonStyles } from '../components/ui/Button'
+import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Price } from '../components/ui/Price'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -24,10 +23,9 @@ import { useToast } from '../components/ui/Toast'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { ApiError, assetUrl } from '../lib/auth'
-import { formatPrice, siteLabel, whatsappLink } from '../lib/format'
+import { formatPrice, siteLabel } from '../lib/format'
 import { availabilityLabels, conditionLabels, durationLabel, typeLabels } from '../lib/listingLabels'
 import { marketApi, type Listing } from '../lib/market'
-import { listingWhatsappMessage } from '../lib/whatsapp'
 
 export default function ListingPage() {
   const { id } = useParams({ from: '/annonce/$id' })
@@ -105,10 +103,6 @@ export default function ListingPage() {
 
   const photos = listing.photos.map((photo) => assetUrl(photo.thumbUrl ?? photo.url)).filter(Boolean) as string[]
   const mainPhoto = photos[activePhoto] ?? null
-  const whatsapp = whatsappLink(
-    listing.store.whatsapp,
-    listingWhatsappMessage(listing, listing.store.name),
-  )
   const available = listing.availability === 'AVAILABLE'
   const maxQuantity = Math.max(1, Math.min(99, listing.quantity ?? 99))
 
@@ -266,7 +260,6 @@ export default function ListingPage() {
                 <p className="flex items-center gap-1 text-xs text-ink-muted">
                   <MapPin className="h-3 w-3" /> {siteLabel(listing.store.site)}
                 </p>
-                <p className="mt-0.5 text-xs text-ink-muted">WhatsApp : {listing.store.whatsapp}</p>
               </div>
             </div>
             <p className="mt-3 text-[11px] leading-relaxed text-ink-muted">
@@ -310,9 +303,6 @@ export default function ListingPage() {
               >
                 {available ? 'Ajouter au panier' : 'Indisponible'}
               </Button>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className={buttonStyles({ variant: 'outline', fullWidth: true })}>
-                <MessageCircle className="h-4 w-4" /> Poser une question
-              </a>
               <FavoriteButton listing={listing} className="h-11 w-full sm:col-span-2" />
             </div>
             <div className="mt-3 text-center">
