@@ -22,10 +22,27 @@ export default function HomePage() {
   const [popular, setPopular] = useState<Listing[]>([])
   const [recent, setRecent] = useState<Listing[]>([])
   const [services, setServices] = useState<Listing[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => {
+    try { return !window.localStorage.getItem('2ie-market-home-v1') } catch { return true }
+  })
 
   useEffect(() => {
     let active = true
+    try {
+      const cached = window.localStorage.getItem('2ie-market-home-v1')
+      if (cached) {
+        const snapshot = JSON.parse(cached) as {
+          categories?: PublicCategory[]; popular?: Listing[]; recent?: Listing[]; services?: Listing[]
+        }
+        if (snapshot.categories) setCategories(snapshot.categories)
+        if (snapshot.popular) setPopular(snapshot.popular)
+        if (snapshot.recent) setRecent(snapshot.recent)
+        if (snapshot.services) setServices(snapshot.services)
+        if (snapshot.categories || snapshot.popular || snapshot.recent || snapshot.services) setLoading(false)
+      }
+    } catch {
+      window.localStorage.removeItem('2ie-market-home-v1')
+    }
     ;(async () => {
       try {
         const [categoryResult, popularResult, recentResult, serviceResult] = await Promise.allSettled([
@@ -39,6 +56,16 @@ export default function HomePage() {
         if (popularResult.status === 'fulfilled') setPopular(popularResult.value.listings)
         if (recentResult.status === 'fulfilled') setRecent(recentResult.value.listings)
         if (serviceResult.status === 'fulfilled') setServices(serviceResult.value.listings)
+
+        try {
+          const snapshot = {
+            categories: categoryResult.status === 'fulfilled' ? categoryResult.value.categories : categories,
+            popular: popularResult.status === 'fulfilled' ? popularResult.value.listings : popular,
+            recent: recentResult.status === 'fulfilled' ? recentResult.value.listings : recent,
+            services: serviceResult.status === 'fulfilled' ? serviceResult.value.listings : services,
+          }
+          window.localStorage.setItem('2ie-market-home-v1', JSON.stringify(snapshot))
+        } catch { /* Le cache reste facultatif si le stockage est plein ou désactivé. */ }
 
         if ([categoryResult, popularResult, recentResult, serviceResult].some((result) => result.status === 'rejected')) {
           showToast({
