@@ -37,10 +37,15 @@ const reportSchema = z
 
 async function findActiveStore(slug: string) {
   const store = await prisma.store.findUnique({
-    where: { slug },
+    where: {
+      slug,
+      isActive: true,
+      approvalStatus: 'APPROVED',
+      owner: { is: { status: 'ACTIVE' } },
+    },
     include: { location: true },
   })
-  if (!store || !store.isActive) throw new HttpError(404, 'STORE_NOT_FOUND', 'Boutique introuvable.')
+  if (!store) throw new HttpError(404, 'STORE_NOT_FOUND', 'Boutique introuvable.')
   return store
 }
 
@@ -62,7 +67,7 @@ export async function catalogRoutes(app: FastifyInstance) {
         position: true,
         _count: {
           select: {
-            listings: { where: { status: 'PUBLISHED', store: { isActive: true } } },
+            listings: { where: { status: 'PUBLISHED', store: { isActive: true, approvalStatus: 'APPROVED', owner: { is: { status: 'ACTIVE' } } } } },
           },
         },
       },
@@ -142,6 +147,8 @@ export async function catalogRoutes(app: FastifyInstance) {
       status: 'PUBLISHED',
       store: {
         isActive: true,
+        approvalStatus: 'APPROVED',
+        owner: { is: { status: 'ACTIVE' } },
         ...(site ? { location: { is: { site } } } : {}),
       },
       ...(q
@@ -202,7 +209,7 @@ export async function catalogRoutes(app: FastifyInstance) {
     const { id } = idParam.parse(request.params)
 
     const existing = await prisma.listing.findFirst({
-      where: { id, status: 'PUBLISHED', store: { isActive: true } },
+      where: { id, status: 'PUBLISHED', store: { isActive: true, approvalStatus: 'APPROVED', owner: { is: { status: 'ACTIVE' } } } },
       select: { id: true },
     })
     if (!existing) throw new HttpError(404, 'LISTING_NOT_FOUND', 'Annonce introuvable.')
