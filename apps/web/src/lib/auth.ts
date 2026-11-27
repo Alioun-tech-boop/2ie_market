@@ -33,6 +33,7 @@ export interface SelfUser {
     approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
     reviewNote: string | null
     reviewedAt: string | null
+    subscriptionExpiresAt: string | null
     createdAt: string
     location: { site: Site; reference: string }
   } | null
@@ -92,6 +93,8 @@ function publicErrorMessage(code: string, status: number): string {
     MERCHANT_PENDING: 'Votre demande vendeur est encore en attente de validation.',
     MERCHANT_REJECTED: 'Votre demande vendeur a été refusée. Contactez l’administration.',
     MERCHANT_NOT_APPROVED: 'Cette fonction sera accessible après validation de votre compte vendeur.',
+    SUBSCRIPTION_EXPIRED: 'Votre abonnement vendeur est expiré. Renouvelez-le pour réactiver votre boutique.',
+    SUBSCRIPTION_PAYMENT_PENDING: 'Votre preuve de renouvellement est déjà en cours de vérification.',
     PAYMENT_PROOF_REQUIRED: 'La preuve de paiement des frais vendeur de 1 000 FCFA est obligatoire.',
     STORAGE_SIGN_FAILED: 'Le justificatif de paiement est temporairement inaccessible. Réessayez.',
     ORIGIN_FORBIDDEN: 'Cette action n’a pas pu être effectuée. Actualisez la page puis réessayez.',
