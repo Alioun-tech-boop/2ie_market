@@ -18,6 +18,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum MerchantApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum Site {
   KAMBOINSIN
   OUAGA
@@ -145,6 +151,10 @@ model Store {
   location      Location      @relation(fields: [locationId], references: [id])
   deliveryModes DeliveryMode[]
   isActive      Boolean       @default(true) @map("is_active")
+  approvalStatus MerchantApprovalStatus @default(APPROVED) @map("approval_status")
+  paymentProofUrl String?     @map("payment_proof_url") @db.VarChar(500)
+  reviewNote     String?       @map("review_note") @db.VarChar(500)
+  reviewedAt     DateTime?     @map("reviewed_at")
   listings      Listing[]
   cartNotes     CartNote[]
   orders        Order[]
