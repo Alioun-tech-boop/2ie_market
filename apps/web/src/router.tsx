@@ -103,6 +103,9 @@ const searchRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tableau-de-bord',
+  validateSearch: (search: Record<string, unknown>): { section?: string } => ({
+    section: typeof search.section === 'string' ? search.section : undefined,
+  }),
   component: () => (
     <RequireAuth roles={MERCHANTS}>
       <DashboardPage />
