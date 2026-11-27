@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import {
   AlertCircle,
   Bell,
@@ -44,7 +44,6 @@ function fieldOf(cause: unknown, field: string): string | undefined {
 
 export default function ProfilePage() {
   const { user, logout, updateProfile, updateLocation, updateStore, uploadPhoto } = useAuth()
-  const navigate = useNavigate()
   const { showToast } = useToast()
   const [tab, setTab] = useState<Tab>(() => {
     const requested = new URLSearchParams(window.location.search).get('tab')
@@ -133,7 +132,6 @@ export default function ProfilePage() {
             onClick={() => {
               void (async () => {
                 await logout()
-                await navigate({ to: '/' })
               })()
             }}
           >
