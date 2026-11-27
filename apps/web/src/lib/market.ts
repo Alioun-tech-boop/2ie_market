@@ -95,13 +95,12 @@ export interface StoreSummary {
   name: string
   slug: string
   logoUrl: string | null
-  whatsapp: string
   site: Site
 }
 
 export interface Listing {
   id: string
-  /** Référence lisible ANN-XXXXXX, utilisable dans les messages WhatsApp. */
+  /** Référence lisible ANN-XXXXXX pour le suivi des annonces. */
   reference: string
   title: string
   description: string
@@ -160,7 +159,6 @@ export interface MerchantOrder {
   clientNote: string | null
   client: {
     name: string
-    whatsapp: string
     phone?: string
     locationRef: string | null
     site: Site
