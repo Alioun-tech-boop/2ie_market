@@ -73,7 +73,6 @@ export interface OrderDto {
     name: string
     slug: string
     logoUrl: string | null
-    whatsapp: string
     site: Site
   }
   items: OrderItemDto[]
@@ -155,7 +154,6 @@ export function toOrderDto(order: OrderRecord): OrderDto {
       name: order.store.name,
       slug: order.store.slug,
       logoUrl: order.store.logoUrl,
-      whatsapp: order.store.whatsappE164,
       site: order.store.location.site,
     },
     items: order.items.map((item) => ({
@@ -210,8 +208,7 @@ export function buildCartDto(items: CartItemRecord[], notes: Array<{ storeId: st
           slug: store.slug,
           logoUrl: store.logoUrl,
           site: store.location.site,
-          whatsapp: store.whatsappE164,
-          deliveryModes: store.deliveryModes,
+              deliveryModes: store.deliveryModes,
         },
         note: noteMap.get(store.id) ?? '',
         subtotalCents: 0,
