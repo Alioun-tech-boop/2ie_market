@@ -4,11 +4,6 @@ import '../src/config'
 import { hashPassword } from '../src/lib/password'
 import { prisma } from '../src/lib/prisma'
 
-const email = (process.env.ADMIN_EMAIL ?? 'admin@2ie-market.local').toLowerCase()
-const password = process.env.ADMIN_PASSWORD
-const firstName = process.env.ADMIN_FIRST_NAME ?? 'Admin'
-const lastName = process.env.ADMIN_LAST_NAME ?? '2ie Market'
-
 const DEFAULT_CATEGORIES = [
   { name: 'Informatique et électronique', slug: 'informatique-electronique', icon: 'Laptop', position: 1 },
   { name: 'Téléphones et accessoires', slug: 'telephones-accessoires', icon: 'Smartphone', position: 2 },
