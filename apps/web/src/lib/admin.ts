@@ -14,6 +14,20 @@ export interface AdminPagination {
   pages: number
 }
 
+export interface MerchantApplication {
+  id: string
+  status: 'PENDING' | 'REJECTED'
+  storeName: string
+  description: string
+  whatsapp: string
+  paymentAmount: number
+  paymentProofUrl: string | null
+  reviewNote: string | null
+  createdAt: string
+  owner: { id: string; firstName: string; lastName: string; email: string; phone: string; createdAt: string }
+  location: { site: Site; buildingNumber: string; roomNumber: string; floor: number; reference: string }
+}
+
 export interface AdminUserSummary {
   id: string
   firstName: string
@@ -163,6 +177,14 @@ function withQuery(path: string, params: Record<string, string | number | undefi
 
 export const adminApi = {
   overview: () => api<AdminOverview>('/admin/overview'),
+
+  merchantApplications: () => api<{ applications: MerchantApplication[] }>('/admin/merchant-applications'),
+
+  decideMerchantApplication: (id: string, decision: 'APPROVE' | 'REJECT', note?: string) =>
+    api<{ ok: boolean; status: 'APPROVED' | 'REJECTED' }>(`/admin/merchant-applications/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ decision, note }),
+    }),
 
   users: (params: {
     q?: string
