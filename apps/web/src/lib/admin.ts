@@ -19,7 +19,6 @@ export interface MerchantApplication {
   status: 'PENDING' | 'REJECTED'
   storeName: string
   description: string
-  whatsapp: string
   paymentAmount: number
   paymentProofUrl: string | null
   reviewNote: string | null
