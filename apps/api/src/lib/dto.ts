@@ -42,6 +42,7 @@ export interface SelfUser {
     approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
     reviewNote: string | null
     reviewedAt: string | null
+    subscriptionExpiresAt: string | null
     createdAt: string
     location: { site: Site; reference: string }
   } | null
@@ -79,6 +80,7 @@ export function toSelfUser(user: AuthUserRecord): SelfUser {
           approvalStatus: user.store.approvalStatus,
           reviewNote: user.store.reviewNote,
           reviewedAt: user.store.reviewedAt?.toISOString() ?? null,
+          subscriptionExpiresAt: user.store.subscriptionExpiresAt?.toISOString() ?? null,
           createdAt: user.store.createdAt.toISOString(),
           location: {
             site: user.store.location.site,
