@@ -60,8 +60,13 @@ export async function notificationRoutes(app: FastifyInstance) {
       throw new HttpError(429, 'TOO_MANY_NOTIFICATION_STREAMS', 'Trop de connexions de notifications sont déjà ouvertes.')
     }
     const unreadCount = await prisma.notification.count({ where: { userId, readAt: null } })
-
-    activeStreams.set(userId, active + 1)
+    // Recontrôle après l'await : plusieurs ouvertures simultanées ne doivent
+    // pas dépasser la limite par utilisateur.
+    const currentActive = activeStreams.get(userId) ?? 0
+    if (currentActive >= MAX_STREAMS_PER_USER) {
+      throw new HttpError(429, 'TOO_MANY_NOTIFICATION_STREAMS', 'Trop de connexions de notifications sont déjà ouvertes.')
+    }
+    activeStreams.set(userId, currentActive + 1)
     reply.hijack()
     const response = reply.raw
     response.writeHead(200, {
@@ -75,9 +80,7 @@ export async function notificationRoutes(app: FastifyInstance) {
 
     let cleaned = false
     let heartbeat: ReturnType<typeof setInterval> | undefined
-    const unsubscribe = subscribeNotifications(userId, (notification) => {
-      send(`event: notification\ndata: ${JSON.stringify(notification)}\n\n`)
-    })
+    let unsubscribe = () => {}
     const cleanup = () => {
       if (cleaned) return
       cleaned = true
@@ -94,9 +97,11 @@ export async function notificationRoutes(app: FastifyInstance) {
         cleanup()
       }
     }
-    heartbeat = setInterval(() => send(': ping\n\n'), 25_000)
-    send(`event: ready\ndata: ${JSON.stringify({ unreadCount })}\n\n`)
-
+    unsubscribe = subscribeNotifications(userId, (notification) => {
+      send(`event: notification\\ndata: ${JSON.stringify(notification)}\\n\\n`)
+    })
+    heartbeat = setInterval(() => send(': ping\\n\\n'), 25_000)
+    send(`event: ready\\ndata: ${JSON.stringify({ unreadCount })}\\n\\n`)
     response.on('close', cleanup)
     request.raw.on('error', cleanup)
   })
