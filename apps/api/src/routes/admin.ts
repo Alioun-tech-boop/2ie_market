@@ -12,6 +12,16 @@ import { readMultipart } from '../lib/multipart'
 import { getPlatformSettings, toPlatformDto } from '../lib/platform'
 import { prisma } from '../lib/prisma'
 
+function addOneMonth(from: Date): Date {
+  const next = new Date(from)
+  const day = next.getDate()
+  next.setDate(1)
+  next.setMonth(next.getMonth() + 1)
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate()
+  next.setDate(Math.min(day, lastDay))
+  return next
+}
+
 const pagination = {
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -353,7 +363,7 @@ export async function adminRoutes(app: FastifyInstance) {
         data: {
           approvalStatus: approved ? 'APPROVED' : 'REJECTED',
           isActive: approved && store.owner.status === 'ACTIVE',
-          subscriptionExpiresAt: approved ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null,
+          subscriptionExpiresAt: approved ? addOneMonth(new Date()) : null,
           lastSubscriptionReminderAt: null,
           reviewNote: payload.note?.trim() || null,
           reviewedAt: new Date(),
