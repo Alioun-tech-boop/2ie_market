@@ -69,7 +69,7 @@ export function AdminShell({
             return (
               <button key={item.id} type="button" onClick={() => onSelect(item.id)} aria-current={selected ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors',
+                  'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors',
                   selected ? 'bg-white text-slate-950 shadow-soft' : 'text-slate-300 hover:bg-white/10 hover:text-white',
                 )}
               >
