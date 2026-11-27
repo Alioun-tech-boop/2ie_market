@@ -3,7 +3,6 @@ import { Card } from '../ui/Card'
 import { Price } from '../ui/Price'
 import { SiteChip } from '../ui/SiteChip'
 import { ProductImage } from './ProductImage'
-import { WhatsappButton } from './WhatsappButton'
 import type { Listing, Vendor } from '../../lib/types'
 
 export function ProductCard({
@@ -50,13 +49,6 @@ export function ProductCard({
 
         <div className="mt-4 flex items-end justify-between gap-2 border-t border-line pt-4">
           <Price cents={listing.priceCents} />
-          {vendor && (
-            <WhatsappButton
-              phone={vendor.whatsapp}
-              compact
-              message={`Bonjour ${vendor.storeName}, je m'intéresse à « ${listing.title} » sur 2ie Market.`}
-            />
-          )}
         </div>
       </div>
     </Card>
