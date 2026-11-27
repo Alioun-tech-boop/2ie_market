@@ -60,6 +60,12 @@ import {
 } from '../lib/orderLabels'
 import { ordersApi } from '../lib/orders'
 
+const DASHBOARD_SECTIONS = ['overview', 'listings', 'add', 'orders', 'notifications', 'store', 'profile', 'settings'] as const
+
+function isDashboardSection(value: string): value is (typeof DASHBOARD_SECTIONS)[number] {
+  return (DASHBOARD_SECTIONS as readonly string[]).includes(value)
+}
+
 const ORDER_ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
   CONFIRMED: 'Accepter',
   REJECTED: 'Refuser',
@@ -86,7 +92,10 @@ export default function DashboardPage() {
   const [data, setData] = useState<MerchantDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState('overview')
+  const [activeSection, setActiveSection] = useState<(typeof DASHBOARD_SECTIONS)[number]>(() => {
+    const requested = new URLSearchParams(window.location.search).get('section')
+    return requested && isDashboardSection(requested) ? requested : 'overview'
+  })
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
   const [listingFilter, setListingFilter] = useState<ListingStatus | 'ALL'>('ALL')
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({})
@@ -181,6 +190,12 @@ export default function DashboardPage() {
     }
   }
 
+  function selectDashboardSection(value: string) {
+    if (!isDashboardSection(value)) return
+    setActiveSection(value)
+    window.history.replaceState(null, '', `/tableau-de-bord?section=${encodeURIComponent(value)}`)
+  }
+
   const navItems: DashboardNavItem[] = [
     { id: 'overview', label: 'Vue d’ensemble', icon: BarChart3 },
     { id: 'listings', label: 'Mes annonces', icon: Boxes, badge: data?.stats.listings },
@@ -198,7 +213,7 @@ export default function DashboardPage() {
     description: 'Pilotez votre boutique, vos annonces et vos commandes à partir de données enregistrées.',
     items: navItems,
     active: activeSection,
-    onSelect: setActiveSection,
+    onSelect: selectDashboardSection,
     action: (
       <Link to="/publier" search={{ kind: 'product' }} className={buttonStyles({ variant: 'primary' })}>
         <Plus className="h-4 w-4" /> Nouvelle annonce
@@ -303,7 +318,7 @@ export default function DashboardPage() {
           <DashboardSection
             title="Dernières commandes"
             action={
-              <button type="button" onClick={() => setActiveSection('orders')} className="text-xs font-bold text-brand-700 hover:text-brand-900">
+              <button type="button" onClick={() => selectDashboardSection('orders')} className="text-xs font-bold text-brand-700 hover:text-brand-900">
                 Voir toutes les commandes →
               </button>
             }
