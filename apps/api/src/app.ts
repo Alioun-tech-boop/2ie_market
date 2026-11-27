@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { isIP } from 'node:net'
+import { normalize, sep } from 'node:path'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
@@ -94,11 +95,15 @@ export async function buildApp() {
     // statique public, même si un ancien enregistrement pointe vers ce chemin.
     let pathname = request.url.split('?')[0] ?? request.url
     try {
-      pathname = decodeURIComponent(pathname)
+      // Deux décodages couvrent les séparateurs et segments encodés une fois
+      // puis réencodés par un proxy ; normalize résout aussi les segments "..".
+      pathname = decodeURIComponent(decodeURIComponent(pathname))
     } catch {
       throw new HttpError(400, 'INVALID_PATH', 'Chemin de ressource invalide.')
     }
-    if (pathname.startsWith('/uploads/seller-proofs/')) {
+    const normalizedPath = normalize(pathname)
+    const privateProofPrefix = `/uploads/seller-proofs${sep}`
+    if (normalizedPath === '/uploads/seller-proofs' || normalizedPath.startsWith(privateProofPrefix)) {
       throw new HttpError(404, 'NOT_FOUND', 'Ressource introuvable.')
     }
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return
