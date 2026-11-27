@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { ArrowLeft, CalendarDays, MapPin, MessageCircle, Search, Star, Store as StoreIcon } from 'lucide-react'
+import { ArrowLeft, CalendarDays, MapPin, Search, Star, Store as StoreIcon } from 'lucide-react'
 import { ListingCard } from '../components/market/ListingCard'
 import { Badge } from '../components/ui/Badge'
-import { buttonStyles } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
 import { useToast } from '../components/ui/Toast'
 import { useAuth } from '../context/AuthContext'
 import { ApiError, assetUrl } from '../lib/auth'
-import { siteLabel, whatsappLink } from '../lib/format'
+import { siteLabel } from '../lib/format'
 import { marketApi, type Listing, type PublicStore, type StoreReview } from '../lib/market'
-import { storeWhatsappMessage } from '../lib/whatsapp'
 
 type Tab = 'all' | 'products' | 'services' | 'reviews'
 
@@ -26,6 +24,9 @@ export default function StorePage() {
   const [notFound, setNotFound] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
   const [query, setQuery] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -83,7 +84,6 @@ export default function StorePage() {
 
   const logo = assetUrl(store.logoUrl)
   const isOwner = user?.store?.id === store.id
-  const whatsapp = whatsappLink(store.whatsapp, storeWhatsappMessage(store))
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: 'all', label: 'Tout voir', count: allListings.length },
     { key: 'products', label: 'Produits', count: store.counts.products },
@@ -119,12 +119,6 @@ export default function StorePage() {
               </div>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:w-56">
-              <a href={whatsapp} target="_blank" rel="noreferrer" className={buttonStyles({ variant: 'primary', fullWidth: true })}>
-                <MessageCircle className="h-4 w-4" /> Contacter sur WhatsApp
-              </a>
-              <p className="text-center text-[10px] leading-relaxed text-ink-muted">
-                Message prérempli, aucun envoi automatique.
-              </p>
               {isOwner && <Link to="/tableau-de-bord" className="inline-flex h-10 items-center justify-center rounded-xl border border-line bg-white px-4 text-xs font-semibold text-ink hover:border-brand-300 hover:text-brand-800">Gérer ma boutique</Link>}
             </div>
           </div>
@@ -150,6 +144,44 @@ export default function StorePage() {
 
         {tab === 'reviews' ? (
           <div className="mt-8">
+            {user && !isOwner && store.reviews.enabled && (
+              <form
+                className="mb-6 rounded-2xl border border-line bg-white p-5"
+                onSubmit={async (event) => {
+                  event.preventDefault()
+                  if (reviewSubmitting) return
+                  setReviewSubmitting(true)
+                  try {
+                    await marketApi.submitReview(slug, { rating: reviewRating, comment: reviewComment.trim() })
+                    const refreshed = await marketApi.reviews(slug)
+                    setReviews(refreshed.reviews)
+                    setReviewComment('')
+                    showToast({ tone: 'success', title: 'Avis enregistré', description: 'Merci pour votre retour.' })
+                  } catch (error) {
+                    showToast({ tone: 'info', title: 'Avis non envoyé', description: error instanceof ApiError ? error.message : 'Une commande terminée est nécessaire pour publier un avis.' })
+                  } finally {
+                    setReviewSubmitting(false)
+                  }
+                }}
+              >
+                <h2 className="text-sm font-bold text-ink">Votre avis sur cette boutique</h2>
+                <p className="mt-1 text-xs text-ink-muted">Disponible après une commande terminée.</p>
+                <div className="mt-3 flex items-center gap-1" role="radiogroup" aria-label="Note sur cinq étoiles">
+                  {Array.from({ length: 5 }, (_, index) => {
+                    const value = index + 1
+                    return (
+                      <button key={value} type="button" onClick={() => setReviewRating(value)} aria-label={`${value} étoile(s)`} aria-pressed={reviewRating === value} className="rounded p-1 text-amber-500">
+                        <Star className={`h-6 w-6 ${value <= reviewRating ? 'fill-current' : ''}`} />
+                      </button>
+                    )
+                  })}
+                </div>
+                <textarea value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} maxLength={1000} rows={3} placeholder="Partagez votre expérience (facultatif)" className="mt-3 w-full rounded-xl border border-line p-3 text-sm outline-none focus:border-brand-400" />
+                <button type="submit" disabled={reviewSubmitting} className="mt-3 inline-flex h-10 items-center rounded-xl bg-brand-800 px-4 text-xs font-bold text-white disabled:opacity-50">
+                  {reviewSubmitting ? 'Publication…' : 'Publier mon avis'}
+                </button>
+              </form>
+            )}
             {reviews.length === 0 ? (
               <EmptyState icon={Star} title="Les avis arrivent bientôt" description="Les avis seront publiés après les premières commandes finalisées." />
             ) : (
