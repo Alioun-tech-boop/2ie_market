@@ -286,14 +286,12 @@ export async function authRoutes(app: FastifyInstance) {
     const update: {
       name?: string
       description?: string
-      whatsappE164?: string
       logoUrl?: string | null
       deliveryModes?: DeliveryMode[]
     } = {}
 
     if (data.name) update.name = data.name
     if (data.description) update.description = data.description
-    if (data.whatsapp) update.whatsappE164 = toE164(data.whatsapp)!
     if (data.logoUrl !== undefined) update.logoUrl = data.logoUrl
     if (data.deliveryModes) update.deliveryModes = data.deliveryModes
 
