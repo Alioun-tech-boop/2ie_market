@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router'
 import { Bell, LogOut, MapPin, ShieldCheck, Store as StoreIcon, UserRound } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import type { SelfUser } from '../../lib/auth'
@@ -51,7 +50,6 @@ export function ProfileSummaryPanel({ user }: { user: SelfUser }) {
 
 export function SettingsPanel({ user }: { user: SelfUser }) {
   const { logout } = useAuth()
-  const navigate = useNavigate()
 
   const links = [
     { href: '/profil?tab=infos', label: 'Modifier mes informations', icon: UserRound },
@@ -102,11 +100,7 @@ export function SettingsPanel({ user }: { user: SelfUser }) {
         iconLeft={<LogOut className="h-4 w-4" />}
         onClick={() => {
           void (async () => {
-            try {
-              await logout()
-            } finally {
-              await navigate({ to: '/' })
-            }
+            await logout()
           })()
         }}
       >
