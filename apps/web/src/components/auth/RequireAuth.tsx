@@ -18,6 +18,8 @@ export function RequireAuth({
     if (status === 'guest') void navigate({ to: '/connexion' })
     else if (status === 'authenticated' && user && roles && !roles.includes(user.role)) {
       void navigate({ to: '/profil' })
+    } else if (status === 'authenticated' && user && roles?.includes('MERCHANT') && user.store?.approvalStatus !== 'APPROVED') {
+      void navigate({ to: '/profil' })
     }
   }, [status, user, roles, navigate])
 
