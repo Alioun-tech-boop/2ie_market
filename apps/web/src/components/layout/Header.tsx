@@ -183,7 +183,7 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setMenuOpen(false); void navigate(user.store ? { to: '/tableau-de-bord' } : { to: '/commandes' }) }}
+                    onClick={() => { setMenuOpen(false); void navigate(user.store ? { to: '/tableau-de-bord', search: { section: 'orders' } } : { to: '/commandes' }) }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-muted hover:bg-brand-50 hover:text-brand-800"
                   >
                     <Package className="h-4 w-4" /> {user.store ? 'Mes commandes vendeur' : 'Mes commandes'}
