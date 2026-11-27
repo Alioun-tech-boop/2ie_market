@@ -1,11 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   AlertCircle,
   Bell,
   CalendarDays,
   CheckCircle2,
   ImagePlus,
+  LogOut,
   MapPin,
   ShieldCheck,
   Store,
@@ -42,7 +43,8 @@ function fieldOf(cause: unknown, field: string): string | undefined {
 }
 
 export default function ProfilePage() {
-  const { user, updateProfile, updateLocation, updateStore, uploadPhoto } = useAuth()
+  const { user, logout, updateProfile, updateLocation, updateStore, uploadPhoto } = useAuth()
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const [tab, setTab] = useState<Tab>(() => {
     const requested = new URLSearchParams(window.location.search).get('tab')
@@ -119,9 +121,24 @@ export default function ProfilePage() {
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-canvas py-10 lg:py-14">
       <div className="container-premium max-w-5xl space-y-6">
-        <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">Mon espace</p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-900">Mon profil</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">Mon espace</p>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-900">Mon profil</h1>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            iconLeft={<LogOut className="h-4 w-4" />}
+            onClick={() => {
+              void (async () => {
+                await logout()
+                await navigate({ to: '/' })
+              })()
+            }}
+          >
+            Se déconnecter
+          </Button>
         </div>
 
         <Card className="p-6">
