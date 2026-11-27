@@ -73,16 +73,30 @@ export async function notificationRoutes(app: FastifyInstance) {
       'Access-Control-Allow-Credentials': 'true',
     })
 
+    let cleaned = false
+    let heartbeat: ReturnType<typeof setInterval> | undefined
     const unsubscribe = subscribeNotifications(userId, (notification) => {
-      response.write(`event: notification\ndata: ${JSON.stringify(notification)}\n\n`)
+      send(`event: notification\\ndata: ${JSON.stringify(notification)}\\n\\n`)
     })
-    response.write(`event: ready\ndata: ${JSON.stringify({ unreadCount })}\n\n`)
-
-    const heartbeat = setInterval(() => response.write(': ping\n\n'), 25_000)
     const cleanup = () => {
-      clearInterval(heartbeat)
+      if (cleaned) return
+      cleaned = true
+      if (heartbeat) clearInterval(heartbeat)
       unsubscribe()
+      const remaining = Math.max(0, (activeStreams.get(userId) ?? 1) - 1)
+      if (remaining === 0) activeStreams.delete(userId)
+      else activeStreams.set(userId, remaining)
     }
+    const send = (data: string) => {
+      if (cleaned || response.destroyed || response.writableEnded) return
+      if (!response.write(data)) {
+        response.end()
+        cleanup()
+      }
+    }
+    heartbeat = setInterval(() => send(': ping\\n\\n'), 25_000)
+    send(`event: ready\\ndata: ${JSON.stringify({ unreadCount })}\\n\\n`)
+
     response.on('close', cleanup)
     request.raw.on('error', cleanup)
   })
