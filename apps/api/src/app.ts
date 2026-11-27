@@ -42,7 +42,7 @@ export async function buildApp() {
     // l'e-mail ou le jeton de session à la clé pour éviter de partager le quota
     // entre tous les visiteurs passant par le proxy Netlify.
     keyGenerator: (request) => {
-      const cloudflareIp = config.nodeEnv === 'production'
+      const cloudflareIp = config.secureCookies
         ? request.headers['cf-connecting-ip']
         : undefined
       const ip = typeof cloudflareIp === 'string' && isIP(cloudflareIp)
