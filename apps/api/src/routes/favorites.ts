@@ -9,7 +9,7 @@ const listingParam = z.object({ listingId: z.string().uuid('Annonce invalide.') 
 
 async function assertListable(listingId: string) {
   const listing = await prisma.listing.findFirst({
-    where: { id: listingId, status: { notIn: ['ARCHIVED', 'DRAFT'] } },
+    where: { id: listingId, status: 'PUBLISHED', store: { isActive: true, approvalStatus: 'APPROVED', owner: { is: { status: 'ACTIVE' } } } },
     select: { id: true },
   })
   if (!listing) throw new HttpError(404, 'LISTING_NOT_FOUND', 'Annonce introuvable.')
@@ -20,7 +20,13 @@ export async function favoriteRoutes(app: FastifyInstance) {
 
   app.get('/favorites', guard, async (request) => {
     const favorites = await prisma.favorite.findMany({
-      where: { userId: request.user!.id, listing: { status: { not: 'ARCHIVED' } } },
+      where: {
+        userId: request.user!.id,
+        listing: {
+          status: 'PUBLISHED',
+          store: { isActive: true, approvalStatus: 'APPROVED', owner: { is: { status: 'ACTIVE' } } },
+        },
+      },
       include: { listing: { include: listingCardInclude } },
       orderBy: { createdAt: 'desc' },
       take: 100,
