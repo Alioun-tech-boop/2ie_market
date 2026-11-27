@@ -39,6 +39,10 @@ export interface SelfUser {
     logoUrl: string | null
     deliveryModes: DeliveryMode[]
     isActive: boolean
+    approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
+    paymentProofUrl: string | null
+    reviewNote: string | null
+    reviewedAt: string | null
     createdAt: string
     location: { site: Site; reference: string }
   } | null
@@ -73,6 +77,10 @@ export function toSelfUser(user: AuthUserRecord): SelfUser {
           logoUrl: user.store.logoUrl,
           deliveryModes: user.store.deliveryModes,
           isActive: user.store.isActive,
+          approvalStatus: user.store.approvalStatus,
+          paymentProofUrl: user.store.paymentProofUrl,
+          reviewNote: user.store.reviewNote,
+          reviewedAt: user.store.reviewedAt?.toISOString() ?? null,
           createdAt: user.store.createdAt.toISOString(),
           location: {
             site: user.store.location.site,
