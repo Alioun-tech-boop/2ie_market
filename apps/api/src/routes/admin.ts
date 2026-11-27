@@ -346,7 +346,6 @@ export async function adminRoutes(app: FastifyInstance) {
         status: store.approvalStatus,
         storeName: store.name,
         description: store.description,
-        whatsapp: store.whatsappE164,
         paymentAmount: 1000,
         paymentProofUrl: await signedPrivateImageUrl(store.paymentProofUrl),
         reviewNote: store.reviewNote,
