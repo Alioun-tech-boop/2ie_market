@@ -53,7 +53,7 @@ export async function notificationRoutes(app: FastifyInstance) {
   })
 
   /** Server-Sent Events : temps réel dans cette instance, sans API externe. */
-  app.get('/notifications/stream', { ...guard, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
+  app.get('/notifications/stream', { ...guard, config: { rateLimit: { max: 1000, timeWindow: '1 minute' } } }, async (request, reply) => {
     const userId = request.user!.id
     const active = activeStreams.get(userId) ?? 0
     if (active >= MAX_STREAMS_PER_USER) {
