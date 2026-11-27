@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { useNavigate } from '@tanstack/react-router'
 import { LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/cn'
@@ -32,11 +31,8 @@ export function DashboardShell({
   children: ReactNode
 }) {
   const { logout } = useAuth()
-  const navigate = useNavigate()
-
   async function handleLogout() {
     await logout()
-    await navigate({ to: '/' })
   }
 
   return (
