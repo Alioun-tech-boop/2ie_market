@@ -255,12 +255,18 @@ export async function merchantRoutes(app: FastifyInstance) {
       if (data.status === 'PUBLISHED' && !current.publishedAt) update.publishedAt = new Date()
     }
 
-    if (data.type === 'SERVICE') {
+    if (data.type === 'SERVICE' || (!data.type && current.type === 'SERVICE')) {
       update.condition = null
       update.quantity = null
     } else {
       if (data.condition) update.condition = data.condition
-      if (data.quantity !== undefined) update.quantity = data.quantity
+      if (data.quantity !== undefined) {
+        update.quantity = data.quantity
+        if (data.availability === undefined) {
+          if (data.quantity === 0) update.availability = 'OUT_OF_STOCK'
+          else if (current.availability === 'OUT_OF_STOCK') update.availability = 'AVAILABLE'
+        }
+      }
     }
 
     await prisma.listing.update({ where: { id }, data: update })
