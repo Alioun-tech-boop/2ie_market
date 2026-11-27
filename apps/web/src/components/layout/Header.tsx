@@ -117,7 +117,7 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
                   >
                     <NotificationsPanel limit={3} />
                     <a
-                      href={user.role === 'ADMIN' ? '/admin' : user.store ? '/tableau-de-bord?section=notifications' : '/espace-client?section=notifications'}
+                      href={user.role === 'ADMIN' ? '/admin?section=subscription-renewals' : user.store ? '/tableau-de-bord?section=notifications' : '/espace-client?section=notifications'}
                       className="mt-2 block rounded-xl bg-brand-50 px-3 py-2.5 text-center text-xs font-bold text-brand-800 hover:bg-brand-100"
                     >
                       Voir toutes les notifications
