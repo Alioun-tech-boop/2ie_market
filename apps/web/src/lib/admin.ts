@@ -28,6 +28,27 @@ export interface MerchantApplication {
   location: { site: Site; buildingNumber: string; roomNumber: string; floor: number; reference: string }
 }
 
+export interface SubscriptionRenewal {
+  id: string
+  amount: number
+  status: 'PENDING'
+  submittedAt: string
+  proofUrl: string | null
+  store: {
+    id: string
+    name: string
+    expiresAt: string | null
+    owner: { id: string; firstName: string; lastName: string; email: string; phoneE164: string; status: UserStatus }
+  }
+}
+
+export interface OverdueSubscription {
+  id: string
+  name: string
+  expiresAt: string
+  owner: { id: string; firstName: string; lastName: string; email: string; phoneE164: string }
+}
+
 export interface AdminUserSummary {
   id: string
   firstName: string
@@ -179,6 +200,14 @@ export const adminApi = {
   overview: () => api<AdminOverview>('/admin/overview'),
 
   merchantApplications: () => api<{ applications: MerchantApplication[] }>('/admin/merchant-applications'),
+
+  subscriptionRenewals: () => api<{ renewals: SubscriptionRenewal[]; overdue: OverdueSubscription[] }>('/admin/subscription-renewals'),
+
+  decideSubscriptionRenewal: (id: string, decision: 'APPROVE' | 'REJECT', note?: string) =>
+    api<{ ok: boolean; status: 'APPROVED' | 'REJECTED' }>(`/admin/subscription-renewals/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ decision, note }),
+    }),
 
   decideMerchantApplication: (id: string, decision: 'APPROVE' | 'REJECT', note?: string) =>
     api<{ ok: boolean; status: 'APPROVED' | 'REJECTED' }>(`/admin/merchant-applications/${encodeURIComponent(id)}`, {
