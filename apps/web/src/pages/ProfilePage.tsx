@@ -269,7 +269,6 @@ export default function ProfilePage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input label="Nom de la boutique" value={storeName} onChange={(e) => setStoreName(e.target.value)} error={fieldOf(error, 'name')} required />
-                <Input label="Numéro WhatsApp" type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} error={fieldOf(error, 'whatsapp')} required />
               </div>
 
               <div>
