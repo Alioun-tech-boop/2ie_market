@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Heart } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -20,11 +20,28 @@ export function FavoriteButton({
   const navigate = useNavigate()
   const saved = isFavorite(listing.id)
   const [pending, setPending] = useState(false)
+  const [waitingForAuth, setWaitingForAuth] = useState(false)
+
+  useEffect(() => {
+    if (!waitingForAuth || status === 'loading') return
+    setWaitingForAuth(false)
+    if (status !== 'authenticated') {
+      setPending(false)
+      void navigate({ to: '/connexion' })
+      return
+    }
+    void toggle(listing).finally(() => setPending(false))
+  }, [waitingForAuth, status, navigate, toggle, listing])
 
   async function handleClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     event.stopPropagation()
     if (pending) return
+    if (status === 'loading') {
+      setPending(true)
+      setWaitingForAuth(true)
+      return
+    }
     if (status !== 'authenticated') {
       void navigate({ to: '/connexion' })
       return
@@ -40,7 +57,7 @@ export function FavoriteButton({
       aria-pressed={saved}
       disabled={pending}
       aria-label={saved ? `Retirer « ${listing.title} » des favoris` : `Enregistrer « ${listing.title} » dans les favoris`}
-      title={saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      title={pending && waitingForAuth ? 'Vérification de votre session…' : saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border bg-white/95 text-xs font-semibold shadow-soft backdrop-blur transition-colors disabled:cursor-wait disabled:opacity-60',
         compact ? 'h-9 w-9' : 'h-11 px-4',
