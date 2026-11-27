@@ -3,7 +3,6 @@ import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
 import { SiteChip } from '../ui/SiteChip'
-import { WhatsappButton } from './WhatsappButton'
 import type { Vendor } from '../../lib/types'
 
 export function VendorCard({ vendor, onOpen }: { vendor: Vendor; onOpen?: () => void }) {
@@ -35,11 +34,6 @@ export function VendorCard({ vendor, onOpen }: { vendor: Vendor; onOpen?: () => 
           Voir la boutique
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
         </button>
-        <WhatsappButton
-          phone={vendor.whatsapp}
-          compact
-          message={`Bonjour ${vendor.storeName}, je découvre votre boutique sur 2ie Market.`}
-        />
       </div>
     </Card>
   )
