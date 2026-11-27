@@ -77,7 +77,14 @@ export async function buildApp() {
   })
 
   // En-têtes défensifs pour toutes les réponses de l'API.
-  app.addHook('onSend', async (_request, reply, payload) => {
+  app.addHook('onSend', async (request, reply, payload) => {
+    // Les réponses API peuvent contenir des données propres à un compte.
+    // Ne jamais laisser le CDN ou le navigateur les réutiliser entre sessions.
+    if (!request.url.startsWith('/uploads/')) {
+      reply.header('Cache-Control', 'private, no-store, max-age=0')
+      reply.header('Pragma', 'no-cache')
+      reply.header('Vary', 'Origin, Cookie, Authorization')
+    }
     reply.header('X-Content-Type-Options', 'nosniff')
     reply.header('X-Frame-Options', 'DENY')
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
