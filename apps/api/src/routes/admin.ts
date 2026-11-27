@@ -313,7 +313,7 @@ function toAuditDto(entry: AuditRecord) {
 export async function adminRoutes(app: FastifyInstance) {
   app.get('/private-proofs/:filename', adminGuard, async (request, reply) => {
     const { filename } = z.object({
-      filename: z.string().regex(/^[0-9a-f-]{36}\\.(?:pdf|webp)$/i),
+      filename: z.string().regex(/^[0-9a-f-]{36}\.(?:pdf|webp)$/i),
     }).parse(request.params)
     let data: Buffer
     try {
