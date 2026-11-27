@@ -60,7 +60,7 @@ function contentFor(type: NotificationType, payload: Record<string, unknown>) {
       return {
         title: 'Nouvelle commande',
         message: `${text(payload.clientName) || 'Un client'} a commandé ${text(payload.orderNumber) || reference} — ${total}.`,
-        href: '/tableau-de-bord',
+        href: '/tableau-de-bord?section=notifications',
       }
     case 'ORDER_STATUS': {
       const status = statusLabels[text(payload.status)] ?? text(payload.status)
