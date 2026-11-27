@@ -32,11 +32,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<FavoriteDto[]>([])
   const [loading, setLoading] = useState(false)
   const inFlight = useRef(new Set<string>())
+  const sessionVersion = useRef(0)
 
   const refresh = useCallback(async () => {
+    const version = sessionVersion.current
     try {
       const data = await favoritesApi.list()
-      setFavorites(data.favorites)
+      if (version === sessionVersion.current && status === 'authenticated') setFavorites(data.favorites)
     } catch (cause) {
       showToast({
         tone: 'info',
@@ -44,11 +46,12 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         description: cause instanceof ApiError ? cause.message : 'Impossible de récupérer vos favoris. Réessayez.',
       })
     } finally {
-      setLoading(false)
+      if (version === sessionVersion.current) setLoading(false)
     }
-  }, [showToast])
+  }, [showToast, status])
 
   useEffect(() => {
+    sessionVersion.current += 1
     if (status !== 'authenticated') {
       setFavorites([])
       setLoading(false)
@@ -72,6 +75,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     async (listing: Listing) => {
       if (inFlight.current.has(listing.id)) return favoriteIds.has(listing.id)
       inFlight.current.add(listing.id)
+      const version = sessionVersion.current
       const wasSaved = favoriteIds.has(listing.id)
       const previousFavorites = favorites
       setFavorites((current) =>
@@ -82,15 +86,17 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       try {
         if (wasSaved) await favoritesApi.remove(listing.id)
         else await favoritesApi.save(listing.id)
-        showToast({
-          tone: 'success',
-          title: wasSaved ? 'Favori retiré' : 'Favori enregistré',
-          description: listing.title,
-        })
+        if (version === sessionVersion.current && status === 'authenticated') {
+          showToast({
+            tone: 'success',
+            title: wasSaved ? 'Favori retiré' : 'Favori enregistré',
+            description: listing.title,
+          })
+        }
         return !wasSaved
       } catch (cause) {
-        setFavorites(previousFavorites)
-        showToast({
+        if (version === sessionVersion.current && status === 'authenticated') setFavorites(previousFavorites)
+        if (version === sessionVersion.current && status === 'authenticated') showToast({
           tone: 'info',
           title: 'Enregistrement impossible',
           description: cause instanceof ApiError ? cause.message : 'Vérifiez votre connexion puis réessayez.',
@@ -100,7 +106,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         inFlight.current.delete(listing.id)
       }
     },
-    [favoriteIds, favorites, showToast],
+    [favoriteIds, favorites, showToast, status],
   )
 
   const value = useMemo(
