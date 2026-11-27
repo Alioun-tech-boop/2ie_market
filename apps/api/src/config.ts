@@ -27,6 +27,7 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL?.replace(/\/+$/, '') ?? '',
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? '2ie-market-media',
+  supabasePrivateBucket: process.env.SUPABASE_PRIVATE_BUCKET ?? '2ie-market-private',
   reviewsEnabled: process.env.REVIEWS_ENABLED === 'true',
   maxPhotoBytes: 2 * 1024 * 1024,
   maxPhotosPerListing: 6,
