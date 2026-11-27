@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { usePlatform } from '../../context/PlatformContext'
 import { assetUrl } from '../../lib/auth'
 import { cn } from '../../lib/cn'
@@ -7,14 +7,26 @@ export function Logo({ compact = false, className }: { compact?: boolean; classN
   const gradientId = useId().replace(/:/g, '')
   const { platform } = usePlatform()
   const logo = assetUrl(platform.logoUrl)
+  const [logoFailed, setLogoFailed] = useState(false)
   const words = platform.name.trim().split(/\s+/)
   const first = words[0] || '2ie'
   const rest = words.slice(1).join(' ')
 
+  useEffect(() => {
+    setLogoFailed(false)
+  }, [logo])
+
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)} aria-label={platform.name}>
-      {logo ? (
-        <img src={logo} alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" />
+      {logo && !logoFailed ? (
+        <img
+          src={logo}
+          alt=""
+          loading="eager"
+          decoding="async"
+          onError={() => setLogoFailed(true)}
+          className="h-10 w-10 shrink-0 rounded-xl object-cover"
+        />
       ) : (
         <svg className="h-10 w-10 shrink-0" viewBox="0 0 40 40" role="img" aria-label={platform.name}>
           <defs>
