@@ -271,6 +271,10 @@ export const marketApi = {
     api<{ enabled: boolean; count: number; average: number | null; reviews: StoreReview[] }>(
       `/stores/${encodeURIComponent(slug)}/reviews`,
     ),
+  submitReview: (slug: string, payload: { rating: number; comment?: string }) =>
+    api<{ review: StoreReview }>(`/stores/${encodeURIComponent(slug)}/reviews`, {
+      method: 'POST', body: JSON.stringify(payload),
+    }),
   dashboard: (status?: OrderStatus) =>
     api<MerchantDashboard>(`/me/dashboard${status ? `?status=${encodeURIComponent(status)}` : ''}`),
   merchantListing: (id: string) =>
