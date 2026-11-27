@@ -182,7 +182,14 @@ export async function storePrivateImage(input: Buffer, mimetype: string): Promis
 /** Génère une URL signée courte pour qu'un administrateur consulte un justificatif privé. */
 export async function signedPrivateImageUrl(objectPath: string | null): Promise<string | null> {
   if (!objectPath) return null
-  if (/^https?:\/\//i.test(objectPath) || objectPath.startsWith('/uploads/')) return objectPath
+  if (objectPath.startsWith('/uploads/seller-proofs/')) {
+    const filename = objectPath.slice('/uploads/seller-proofs/'.length)
+    if (!/^[0-9a-f-]{36}\\.(?:pdf|webp)$/i.test(filename)) return null
+    // Le fichier local est servi uniquement par une route admin authentifiée.
+    return `/api/v1/admin/private-proofs/${filename}`
+  }
+  // Ne jamais exposer une URL arbitraire ou un chemin public comme justificatif privé.
+  if (/^https?:\/\//i.test(objectPath) || objectPath.startsWith('/uploads/')) return null
   const bucket = encodeURIComponent(config.supabasePrivateBucket)
   const path = objectPath.split('/').map(encodeURIComponent).join('/')
   let response: Response
