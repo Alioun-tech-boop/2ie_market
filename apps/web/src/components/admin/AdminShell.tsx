@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { ExternalLink, LogOut, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { usePlatform } from '../../context/PlatformContext'
@@ -18,6 +18,7 @@ export function AdminShell({
   description,
   items,
   active,
+  onSelect,
   action,
   children,
 }: {
@@ -25,16 +26,14 @@ export function AdminShell({
   description: string
   items: AdminNavItem[]
   active: string
+  onSelect: (id: string) => void
   action?: ReactNode
   children: ReactNode
 }) {
   const { user, logout } = useAuth()
   const { platform } = usePlatform()
-  const navigate = useNavigate()
-
   async function handleLogout() {
     await logout()
-    await navigate({ to: '/' })
   }
 
   return (
@@ -57,14 +56,7 @@ export function AdminShell({
             >
               <ExternalLink className="h-3.5 w-3.5" /> Site
             </Link>
-            <button
-              type="button"
-              onClick={() => void handleLogout()}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
-              aria-label="Se déconnecter"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <button type="button" onClick={() => void handleLogout()} className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-rose-500/15 px-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/25" aria-label="Se déconnecter"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">Déconnexion</span></button>
           </div>
         </div>
 
@@ -73,10 +65,7 @@ export function AdminShell({
             const Icon = item.icon
             const selected = item.id === active
             return (
-              <a
-                key={item.id}
-                href={`/admin?section=${encodeURIComponent(item.id)}`}
-                aria-current={selected ? 'page' : undefined}
+              <button key={item.id} type="button" onClick={() => onSelect(item.id)} aria-current={selected ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors',
                   selected ? 'bg-white text-slate-950 shadow-soft' : 'text-slate-300 hover:bg-white/10 hover:text-white',
@@ -94,7 +83,7 @@ export function AdminShell({
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
-              </a>
+              </button>
             )
           })}
         </nav>
