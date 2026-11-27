@@ -6,12 +6,6 @@ export function formatPrice(priceCents: number): string {
   return `${numberFormatter.format(priceCents / 100)} F`
 }
 
-/** Lien profond WhatsApp : E.164 sans « + » (RG-04). */
-export function whatsappLink(phoneE164: string, message?: string): string {
-  const digits = phoneE164.replace(/^\+/, '').replace(/[^0-9]/g, '')
-  const base = `https://wa.me/${digits}`
-  return message ? `${base}?text=${encodeURIComponent(message)}` : base
-}
 
 export function siteLabel(site: 'KAMBOINSIN' | 'OUAGA'): string {
   return site === 'KAMBOINSIN' ? 'Kamboinsin' : 'Ouaga'
