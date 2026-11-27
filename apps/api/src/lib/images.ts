@@ -125,32 +125,45 @@ export async function storeOptimizedImage(input: Buffer, mimetype: string): Prom
 
 /** Stocke un justificatif dans un bucket privé et renvoie uniquement sa clé interne. */
 export async function storePrivateImage(input: Buffer, mimetype: string): Promise<string> {
-  if (!ALLOWED_MIME.has(mimetype)) {
-    throw new HttpError(415, 'INVALID_IMAGE', 'Formats acceptés : JPEG, PNG ou WebP.')
+  const isPdf = mimetype === 'application/pdf'
+  if (!ALLOWED_MIME.has(mimetype) && !isPdf) {
+    throw new HttpError(415, 'INVALID_IMAGE', 'Formats acceptés : JPEG, PNG, WebP ou PDF.')
   }
   if (input.byteLength > config.maxPhotoBytes) {
     throw new HttpError(413, 'FILE_TOO_LARGE', 'Le justificatif ne doit pas dépasser 2 Mo.')
   }
+  if (isPdf && input.subarray(0, 5).toString('ascii') !== '%PDF-') {
+    throw new HttpError(415, 'INVALID_IMAGE', 'Le fichier PDF est invalide ou illisible.')
+  }
   try {
-    const image = await sharp(input, { failOn: 'error', limitInputPixels: 40_000_000 })
-      .rotate()
-      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 82, effort: 4 })
-      .toBuffer()
-    const filename = `seller-proofs/${randomUUID()}.webp`
+    const storedData = isPdf
+      ? input
+      : await sharp(input, { failOn: 'error', limitInputPixels: 40_000_000 })
+          .rotate()
+          .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 82, effort: 4 })
+          .toBuffer()
+    const extension = isPdf ? 'pdf' : 'webp'
+    const contentType = isPdf ? 'application/pdf' : 'image/webp'
+    const filename = `seller-proofs/${randomUUID()}.${extension}`
     if (storageIsConfigured()) {
       const bucket = encodeURIComponent(config.supabasePrivateBucket)
       const objectPath = filename.split('/').map(encodeURIComponent).join('/')
-      const response = await fetch(`${config.supabaseUrl}/storage/v1/object/${bucket}/${objectPath}`, {
-        method: 'POST',
-        headers: {
-          apikey: config.supabaseServiceRoleKey,
-          Authorization: `Bearer ${config.supabaseServiceRoleKey}`,
-          'Content-Type': 'image/webp',
-          'x-upsert': 'false',
-        },
-        body: new Uint8Array(image),
-      })
+      let response: Response
+      try {
+        response = await fetch(`${config.supabaseUrl}/storage/v1/object/${bucket}/${objectPath}`, {
+          method: 'POST',
+          headers: {
+            apikey: config.supabaseServiceRoleKey,
+            Authorization: `Bearer ${config.supabaseServiceRoleKey}`,
+            'Content-Type': contentType,
+            'x-upsert': 'false',
+          },
+          body: new Uint8Array(storedData),
+        })
+      } catch {
+        throw new HttpError(502, 'STORAGE_UNAVAILABLE', 'Le stockage du justificatif est momentanément indisponible.')
+      }
       if (!response.ok) throw new HttpError(502, 'STORAGE_UPLOAD_FAILED', 'Le justificatif n’a pas pu être enregistré.')
       return filename
     }
@@ -158,11 +171,11 @@ export async function storePrivateImage(input: Buffer, mimetype: string): Promis
       throw new HttpError(503, 'STORAGE_NOT_CONFIGURED', 'Le stockage privé des justificatifs n’est pas configuré.')
     }
     await mkdir(join(config.uploadsDir, 'seller-proofs'), { recursive: true })
-    await writeFile(join(config.uploadsDir, filename), image)
+    await writeFile(join(config.uploadsDir, filename), storedData)
     return `/uploads/${filename}`
   } catch (error) {
     if (error instanceof HttpError) throw error
-    throw new HttpError(415, 'INVALID_IMAGE', 'Image illisible ou corrompue.')
+    throw new HttpError(415, 'INVALID_IMAGE', 'Fichier illisible ou corrompu.')
   }
 }
 
