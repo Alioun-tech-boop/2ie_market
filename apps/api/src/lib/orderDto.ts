@@ -207,7 +207,7 @@ export function buildCartDto(items: CartItemRecord[], notes: Array<{ storeId: st
           slug: store.slug,
           logoUrl: store.logoUrl,
           site: store.location.site,
-              deliveryModes: store.deliveryModes,
+          deliveryModes: store.deliveryModes,
         },
         note: noteMap.get(store.id) ?? '',
         subtotalCents: 0,
