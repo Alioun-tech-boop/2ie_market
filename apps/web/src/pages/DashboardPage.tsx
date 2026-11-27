@@ -85,6 +85,7 @@ export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
   const [listingFilter, setListingFilter] = useState<ListingStatus | 'ALL'>('ALL')
+  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({})
   const lastSeenNotification = useRef<string | null>(null)
 
   const load = useCallback(async () => {
@@ -109,6 +110,25 @@ export default function DashboardPage() {
     lastSeenNotification.current = latest.id
     if (latest.type === 'NEW_ORDER') void load()
   }, [notifications, load])
+
+  async function updateStock(listing: MerchantListing) {
+    const raw = stockDrafts[listing.id] ?? String(listing.quantity ?? 0)
+    const quantity = Number(raw)
+    if (!Number.isInteger(quantity) || quantity < 0 || quantity > 9999) {
+      showToast({ tone: 'info', title: 'Stock invalide', description: 'Saisissez un nombre entier entre 0 et 9 999.' })
+      return
+    }
+    setBusyId(listing.id)
+    try {
+      await marketApi.updateListing(listing.id, { quantity })
+      showToast({ tone: 'success', title: 'Stock actualisé', description: `${listing.title} : ${quantity} unité(s)` })
+      await load()
+    } catch {
+      showToast({ tone: 'info', title: 'Mise à jour impossible', description: 'Réessayez.' })
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   async function toggleStatus(listing: MerchantListing) {
     setBusyId(listing.id)
@@ -349,7 +369,23 @@ export default function DashboardPage() {
                       </div>
                       <div className="text-xs text-ink-muted">
                         <p className="font-semibold text-ink">{shortTypeLabels[listing.type]}</p>
-                        {listing.condition && <p className="mt-0.5">{listing.quantity ?? 0} en stock</p>}
+                        {listing.condition && (
+                          <>
+                            <p className="mt-0.5">{listing.quantity ?? 0} en stock</p>
+                            <div className="mt-2 flex items-center gap-1.5">
+                              <input
+                                aria-label={`Nouveau stock pour ${listing.title}`}
+                                type="number"
+                                min="0"
+                                max="9999"
+                                value={stockDrafts[listing.id] ?? String(listing.quantity ?? 0)}
+                                onChange={(event) => setStockDrafts((current) => ({ ...current, [listing.id]: event.target.value }))}
+                                className="h-8 w-20 rounded-lg border border-line px-2 text-xs"
+                              />
+                              <button type="button" disabled={busy} onClick={() => void updateStock(listing)} className="h-8 rounded-lg bg-brand-800 px-2.5 text-[10px] font-bold text-white disabled:opacity-50">Actualiser</button>
+                            </div>
+                          </>
+                        )}
                       </div>
                       <div><Price cents={listing.priceCents} size="sm" /></div>
                       <div className="flex items-center gap-1 text-sm font-semibold text-ink"><Eye className="h-3.5 w-3.5 text-ink-soft" /> {listing.viewsCount}</div>
