@@ -579,13 +579,16 @@ export async function adminRoutes(app: FastifyInstance) {
           data: { revokedAt: new Date() },
         })
       }
-      if (target.role === 'MERCHANT') {
-        // La boutique et ses annonces ne doivent plus être visibles publiquement
-        // tant que le compte commerçant est suspendu.
-        await tx.store.updateMany({
-          where: { ownerId: id },
-          data: { isActive: status === 'ACTIVE' && (await tx.store.findUnique({ where: { ownerId: id }, select: { approvalStatus: true } }))?.approvalStatus === 'APPROVED' },
-        })
+      if (user.role === 'MERCHANT') {
+        // La boutique ne peut être réactivée que si le compte et la validation
+        // administrative sont tous deux actifs.
+        const store = await tx.store.findUnique({ where: { ownerId: id }, select: { id: true, approvalStatus: true } })
+        if (store) {
+          await tx.store.update({
+            where: { id: store.id },
+            data: { isActive: status === 'ACTIVE' && store.approvalStatus === 'APPROVED' },
+          })
+        }
       }
       await tx.auditLog.create({
         data: {
@@ -627,7 +630,14 @@ export async function adminRoutes(app: FastifyInstance) {
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.update({ where: { id }, data: { role } })
+      const changed = await tx.user.updateMany({
+        where: { id, role: target.role },
+        data: { role },
+      })
+      if (changed.count !== 1) {
+        throw new HttpError(409, 'USER_ROLE_CHANGED', 'Le rôle de cet utilisateur a changé. Actualisez la page.')
+      }
+      const user = await tx.user.findUniqueOrThrow({ where: { id } })
 
       if (target.store) {
         if (role === 'MERCHANT') {
