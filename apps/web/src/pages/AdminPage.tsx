@@ -116,7 +116,6 @@ export default function AdminPage() {
       description={copy.description}
       items={nav}
       active={section}
-      onSelect={(id) => setSection(isSection(id) ? id : 'overview')}
       action={
         <Button
           size="sm"
