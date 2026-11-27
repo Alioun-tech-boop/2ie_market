@@ -98,10 +98,10 @@ export async function notificationRoutes(app: FastifyInstance) {
       }
     }
     unsubscribe = subscribeNotifications(userId, (notification) => {
-      send(`event: notification\\ndata: ${JSON.stringify(notification)}\\n\\n`)
+      send(`event: notification\ndata: ${JSON.stringify(notification)}\n\n`)
     })
-    heartbeat = setInterval(() => send(': ping\\n\\n'), 25_000)
-    send(`event: ready\\ndata: ${JSON.stringify({ unreadCount })}\\n\\n`)
+    heartbeat = setInterval(() => send(': ping\n\n'), 25_000)
+    send(`event: ready\ndata: ${JSON.stringify({ unreadCount })}\n\n`)
     response.on('close', cleanup)
     request.raw.on('error', cleanup)
   })
