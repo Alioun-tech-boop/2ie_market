@@ -65,7 +65,7 @@ export async function subscriptionRoutes(app: FastifyInstance) {
     const payment = await prisma.$transaction(async (tx) => {
       // Verrou PostgreSQL par boutique : deux envois simultanés ne peuvent
       // pas créer deux renouvellements en attente.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${store.id}))`
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${store.id}, 0))`
       const pending = await tx.merchantSubscriptionPayment.findFirst({
         where: { storeId: store.id, status: 'PENDING' },
         select: { id: true },
