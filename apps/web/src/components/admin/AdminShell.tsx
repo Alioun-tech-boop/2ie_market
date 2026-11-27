@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { ExternalLink, LogOut, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { usePlatform } from '../../context/PlatformContext'
@@ -32,10 +32,8 @@ export function AdminShell({
 }) {
   const { user, logout } = useAuth()
   const { platform } = usePlatform()
-  const navigate = useNavigate()
   async function handleLogout() {
     await logout()
-    await navigate({ to: '/' })
   }
 
   return (
