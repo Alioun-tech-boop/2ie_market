@@ -23,6 +23,10 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   secureCookies: process.env.NODE_ENV === 'production',
   uploadsDir: join(here, '..', 'uploads'),
+  // Le service role key reste exclusivement côté API ; ne jamais l'exposer au frontend.
+  supabaseUrl: process.env.SUPABASE_URL?.replace(/\/+$/, '') ?? '',
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+  supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? '2ie-market-media',
   reviewsEnabled: process.env.REVIEWS_ENABLED === 'true',
   maxPhotoBytes: 2 * 1024 * 1024,
   maxPhotosPerListing: 6,
