@@ -71,7 +71,7 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
                     { label: 'Voir les produits', href: '/recherche?type=PRODUCT' },
                     { label: 'Voir les services', href: '/recherche?type=SERVICE' },
                     { label: 'Mon profil', href: '/profil' },
-                    { label: 'Mes commandes', href: '/commandes' },
+                    { label: 'Mes commandes', href: user?.store ? '/tableau-de-bord?section=orders' : '/commandes' },
                     { label: 'Mes favoris', href: '/espace-client?section=favoris' },
                     ...(user?.store ? [{ label: 'Tableau de bord', href: '/tableau-de-bord' }, { label: 'Publier une annonce', href: '/publier' }, { label: 'Ma boutique', href: user.store ? `/boutique/${user.store.slug}` : '/profil' }] : []),
                     ...(user?.role === 'ADMIN' ? [{ label: 'Administration', href: '/admin' }] : []),
@@ -183,18 +183,18 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setMenuOpen(false); void navigate({ to: '/commandes' }) }}
+                    onClick={() => { setMenuOpen(false); void navigate(user.store ? { to: '/tableau-de-bord' } : { to: '/commandes' }) }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-muted hover:bg-brand-50 hover:text-brand-800"
                   >
-                    <Package className="h-4 w-4" /> Mes commandes
+                    <Package className="h-4 w-4" /> {user.store ? 'Mes commandes vendeur' : 'Mes commandes'}
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => { setMenuOpen(false); void navigate({ to: '/espace-client' }) }}
+                    onClick={() => { setMenuOpen(false); void navigate(user.store ? { to: '/tableau-de-bord' } : { to: '/espace-client' }) }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-muted hover:bg-brand-50 hover:text-brand-800"
                   >
-                    <LayoutDashboard className="h-4 w-4" /> Mon espace client
+                    <LayoutDashboard className="h-4 w-4" /> {user.store ? 'Mon espace vendeur' : 'Mon espace client'}
                   </button>
                   <a
                     href="/espace-client?section=favoris"
