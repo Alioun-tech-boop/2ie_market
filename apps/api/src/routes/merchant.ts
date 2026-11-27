@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { unlink } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { Prisma } from '@prisma/client'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { createListingSchema, updateListingSchema, ORDER_STATUSES } from '@2ie/shared'
 import { config } from '../config'
@@ -67,7 +67,7 @@ async function removeFiles(urls: (string | null)[]) {
 }
 
 export async function merchantRoutes(app: FastifyInstance) {
-  const requireApprovedMerchant = async (request: Parameters<NonNullable<FastifyInstance['addHook']>>[1] extends never ? never : any) => {
+  const requireApprovedMerchant = async (request: FastifyRequest) => {
     const store = await prisma.store.findUnique({
       where: { ownerId: request.user!.id },
       select: { approvalStatus: true },
