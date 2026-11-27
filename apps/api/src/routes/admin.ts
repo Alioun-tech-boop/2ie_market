@@ -358,19 +358,38 @@ export async function adminRoutes(app: FastifyInstance) {
 
     await prisma.$transaction(async (tx) => {
       const approved = payload.decision === 'APPROVE'
-      await tx.store.update({
-        where: { id },
+      if (approved && store.owner.role === 'ADMIN') {
+        throw new HttpError(409, 'ADMIN_MERCHANT_CONFLICT', 'Un compte administrateur ne peut pas être converti en compte vendeur.')
+      }
+      const owner = await tx.user.findUniqueOrThrow({
+        where: { id: store.ownerId },
+        select: { status: true, role: true },
+      })
+      if (approved && owner.role === 'ADMIN') {
+        throw new HttpError(409, 'ADMIN_MERCHANT_CONFLICT', 'Un compte administrateur ne peut pas être converti en compte vendeur.')
+      }
+      const changed = await tx.store.updateMany({
+        where: { id, approvalStatus: store.approvalStatus },
         data: {
           approvalStatus: approved ? 'APPROVED' : 'REJECTED',
-          isActive: approved && store.owner.status === 'ACTIVE',
+          isActive: approved && owner.status === 'ACTIVE',
           subscriptionExpiresAt: approved ? addOneMonth(new Date()) : null,
           lastSubscriptionReminderAt: null,
           reviewNote: payload.note?.trim() || null,
           reviewedAt: new Date(),
         },
       })
+      if (changed.count !== 1) {
+        throw new HttpError(409, 'MERCHANT_APPLICATION_REVIEWED', 'Cette demande a déjà été traitée.')
+      }
       if (approved) {
-        await tx.user.update({ where: { id: store.ownerId }, data: { role: 'MERCHANT' } })
+        const promoted = await tx.user.updateMany({
+          where: { id: store.ownerId, role: { not: 'ADMIN' } },
+          data: { role: 'MERCHANT' },
+        })
+        if (promoted.count !== 1) {
+          throw new HttpError(409, 'ADMIN_MERCHANT_CONFLICT', 'Le compte propriétaire ne peut pas être converti en vendeur.')
+        }
       }
       await tx.auditLog.create({
         data: {
