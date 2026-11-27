@@ -914,7 +914,7 @@ await check('Limitation des tentatives de connexion', async () => {
     const response = await new ApiClient(`rate-${index}`).post(
       '/v1/auth/login',
       { email: `absent.${RUN}@audit.local`, password: 'Wrong-Password-1' },
-      {},
+      { headers: { 'x-forwarded-for': `203.0.113.${index + 1}` } },
     )
     statuses.push(response.status)
   }
