@@ -116,7 +116,7 @@ export default function CheckoutPage() {
       showToast({
         tone: 'success',
         title: 'Commande enregistrée',
-        description: `Référence ${result.group.reference} — accord direct avec le commerçant via WhatsApp.`,
+        description: `Référence ${result.group.reference} — le vendeur reçoit une notification et peut gérer la commande depuis son espace.`,
       })
       await navigate({
         to: '/commande/$reference',
@@ -181,8 +181,7 @@ export default function CheckoutPage() {
           <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">Dernière étape</p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-900">Confirmer la commande</h1>
           <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-            Vérifiez vos coordonnées et le détail par boutique. Votre commande est ensuite enregistrée et l'accord
-            sur la remise se fait directement avec le commerçant via WhatsApp.
+            Vérifiez vos coordonnées et le détail par boutique. Votre commande est confirmée automatiquement et chaque vendeur reçoit une notification.
           </p>
         </div>
 
@@ -422,7 +421,7 @@ export default function CheckoutPage() {
                 Confirmer la commande
               </Button>
               <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-                Votre commande est enregistrée. L'accord sur la remise se fait directement avec le commerçant via WhatsApp.
+                Votre commande est confirmée automatiquement. Chaque vendeur reçoit une notification et peut l'annuler à tout moment depuis son espace.
               </p>
             </Card>
           </aside>
