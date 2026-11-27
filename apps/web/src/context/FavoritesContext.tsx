@@ -40,11 +40,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const data = await favoritesApi.list()
       if (version === sessionVersion.current && status === 'authenticated') setFavorites(data.favorites)
     } catch (cause) {
-      showToast({
-        tone: 'info',
-        title: 'Favoris indisponibles',
-        description: cause instanceof ApiError ? cause.message : 'Impossible de récupérer vos favoris. Réessayez.',
-      })
+      if (version === sessionVersion.current && status === 'authenticated') {
+        showToast({
+          tone: 'info',
+          title: 'Favoris indisponibles',
+          description: cause instanceof ApiError ? cause.message : 'Impossible de récupérer vos favoris. Réessayez.',
+        })
+      }
     } finally {
       if (version === sessionVersion.current) setLoading(false)
     }
