@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { LocationForm, type LocationValue } from '../components/location/LocationForm'
 import { NotificationsPanel } from '../components/notifications/NotificationsPanel'
+import { MerchantSubscriptionCard } from '../components/profile/MerchantSubscriptionCard'
 import { Avatar } from '../components/ui/Avatar'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -166,6 +167,8 @@ export default function ProfilePage() {
             </div>
           </Card>
         )}
+
+        {user.role === 'MERCHANT' && user.store?.approvalStatus === 'APPROVED' && <MerchantSubscriptionCard />}
 
         <div className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-white p-1.5 scrollbar-none">
           {tabs.filter((item) => !item.merchantOnly || (user.role === 'MERCHANT' && user.store?.approvalStatus === 'APPROVED')).map((item) => {
