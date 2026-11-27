@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Flag, LayoutDashboard, Package, RefreshCw, ScrollText, Settings, ShoppingBag, Tags, Users } from 'lucide-react'
+import { Flag, LayoutDashboard, Package, RefreshCw, ScrollText, Settings, ShoppingBag, Tags, Users, Store } from 'lucide-react'
 import { AdminAuditPanel } from '../components/admin/AdminAuditPanel'
 import { AdminCategoriesPanel } from '../components/admin/AdminCategoriesPanel'
 import { AdminListingsPanel } from '../components/admin/AdminListingsPanel'
+import { AdminMerchantApplicationsPanel } from '../components/admin/AdminMerchantApplicationsPanel'
 import { AdminOrdersPanel } from '../components/admin/AdminOrdersPanel'
 import { AdminOverviewPanel } from '../components/admin/AdminOverviewPanel'
 import { AdminReportsPanel } from '../components/admin/AdminReportsPanel'
@@ -14,13 +15,17 @@ import { useToast } from '../components/ui/Toast'
 import { ApiError } from '../lib/auth'
 import { adminApi, type AdminOverview } from '../lib/admin'
 
-const SECTIONS = ['overview', 'users', 'listings', 'orders', 'reports', 'categories', 'settings', 'audit'] as const
+const SECTIONS = ['overview', 'merchant-applications', 'users', 'listings', 'orders', 'reports', 'categories', 'settings', 'audit'] as const
 type SectionId = (typeof SECTIONS)[number]
 
 const COPY: Record<SectionId, { title: string; description: string }> = {
   overview: {
     title: 'Vue d’ensemble',
     description: 'Indicateurs consolidés, activité par site et dernières opérations sensibles.',
+  },
+  'merchant-applications': {
+    title: 'Demandes vendeurs',
+    description: 'Vérifiez les justificatifs de paiement de 1 000 FCFA et validez ou refusez les ouvertures de boutiques.',
   },
   users: {
     title: 'Utilisateurs',
@@ -84,6 +89,7 @@ export default function AdminPage() {
 
   const nav: AdminNavItem[] = [
     { id: 'overview', label: 'Vue d’ensemble', icon: LayoutDashboard },
+    { id: 'merchant-applications', label: 'Demandes vendeurs', icon: Store },
     { id: 'users', label: 'Utilisateurs', icon: Users, badge: overview?.stats.users },
     { id: 'listings', label: 'Annonces', icon: Package, badge: overview?.stats.listings },
     { id: 'orders', label: 'Commandes', icon: ShoppingBag, badge: overview?.stats.pendingOrders },
@@ -118,7 +124,8 @@ export default function AdminPage() {
       }
     >
       {section === 'overview' && <AdminOverviewPanel overview={overview} loading={loading} />}
-      {section === 'users' && <AdminUsersPanel key={refreshKey} />}
+      {section === 'merchant-applications' && <AdminMerchantApplicationsPanel key={refreshKey} />}
+      {section === 'users' && <AdminUsersPanel key={refreshKey} />
       {section === 'listings' && <AdminListingsPanel key={refreshKey} />}
       {section === 'orders' && <AdminOrdersPanel key={refreshKey} />}
       {section === 'reports' && <AdminReportsPanel key={refreshKey} />}
