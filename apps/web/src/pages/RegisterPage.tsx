@@ -30,7 +30,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [location, setLocation] = useState<LocationValue>(initialLocation)
   const [storeName, setStoreName] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
   const [description, setDescription] = useState('')
   const [paymentProof, setPaymentProof] = useState<File | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
@@ -59,7 +58,7 @@ export default function RegisterPage() {
         phone,
         password,
         ...location,
-        ...(role === 'MERCHANT' ? { storeName, whatsapp, description } : {}),
+        ...(role === 'MERCHANT' ? { storeName, whatsapp: phone, description } : {}),
       }, paymentProof ?? undefined)
       showToast({
         tone: 'success',
@@ -162,7 +161,6 @@ export default function RegisterPage() {
               Votre boutique
             </p>
             <Input label="Nom de la boutique" icon={Store} value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="Studio Kamboinsin" error={errorOf('storeName')} required />
-            <Input label="Numéro WhatsApp" type="tel" icon={Phone} value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+226 70 12 34 56" error={errorOf('whatsapp')} required />
             <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
