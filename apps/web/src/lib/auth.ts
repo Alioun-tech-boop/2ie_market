@@ -26,7 +26,6 @@ export interface SelfUser {
     name: string
     slug: string
     description: string
-    whatsapp: string
     logoUrl: string | null
     deliveryModes: DeliveryMode[]
     isActive: boolean
