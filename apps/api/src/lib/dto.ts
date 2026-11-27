@@ -35,7 +35,6 @@ export interface SelfUser {
     name: string
     slug: string
     description: string
-    whatsapp: string
     logoUrl: string | null
     deliveryModes: DeliveryMode[]
     isActive: boolean
@@ -73,7 +72,6 @@ export function toSelfUser(user: AuthUserRecord): SelfUser {
           name: user.store.name,
           slug: user.store.slug,
           description: user.store.description,
-          whatsapp: user.store.whatsappE164,
           logoUrl: user.store.logoUrl,
           deliveryModes: user.store.deliveryModes,
           isActive: user.store.isActive,
