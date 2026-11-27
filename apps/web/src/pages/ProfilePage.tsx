@@ -129,11 +129,7 @@ export default function ProfilePage() {
             type="button"
             variant="outline"
             iconLeft={<LogOut className="h-4 w-4" />}
-            onClick={() => {
-              void (async () => {
-                await logout()
-              })()
-            }}
+            onClick={() => void logout()}
           >
             Se déconnecter
           </Button>
