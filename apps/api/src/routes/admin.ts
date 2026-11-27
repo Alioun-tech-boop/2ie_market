@@ -544,7 +544,16 @@ export async function adminRoutes(app: FastifyInstance) {
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.update({ where: { id }, data: { status } })
+      // Contrôle atomique du rôle : une promotion concurrente en ADMIN ne
+      // peut pas être suivie d'une suspension via cette route.
+      const changed = await tx.user.updateMany({
+        where: { id, role: { not: 'ADMIN' } },
+        data: { status },
+      })
+      if (changed.count !== 1) {
+        throw new HttpError(403, 'ADMIN_STATUS_PROTECTED', 'Le statut d’un administrateur ne peut pas être modifié via cette API.')
+      }
+      const user = await tx.user.findUniqueOrThrow({ where: { id } })
       if (status === 'SUSPENDED') {
         await tx.refreshToken.updateMany({
           where: { userId: id, revokedAt: null },
