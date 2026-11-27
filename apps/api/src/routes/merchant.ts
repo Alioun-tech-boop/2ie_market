@@ -70,7 +70,7 @@ export async function merchantRoutes(app: FastifyInstance) {
   const requireApprovedMerchant = async (request: FastifyRequest) => {
     const store = await prisma.store.findUnique({
       where: { ownerId: request.user!.id },
-      select: { approvalStatus: true },
+      select: { id: true, approvalStatus: true, subscriptionExpiresAt: true },
     })
     if (!store) throw new HttpError(404, 'STORE_NOT_FOUND', 'Boutique introuvable.')
     if (store.approvalStatus !== 'APPROVED') {
@@ -81,6 +81,10 @@ export async function merchantRoutes(app: FastifyInstance) {
           ? 'Votre demande vendeur est en attente de validation administrative.'
           : 'Votre demande vendeur a été refusée. Contactez l’administration.',
       )
+    }
+    if (!store.subscriptionExpiresAt || store.subscriptionExpiresAt <= new Date()) {
+      await prisma.store.update({ where: { id: store.id }, data: { isActive: false } })
+      throw new HttpError(403, 'SUBSCRIPTION_EXPIRED', 'Votre abonnement vendeur est expiré. Renouvelez-le pour réactiver votre boutique.')
     }
   }
   const guard = { preHandler: [authenticate, authorize('MERCHANT'), requireApprovedMerchant] }
