@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -38,8 +39,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast()
   const [cart, setCart] = useState<CartDto>(emptyCart)
   const [loading, setLoading] = useState(false)
+  const requestVersion = useRef(0)
 
   const refresh = useCallback(async () => {
+    const version = ++requestVersion.current
     if (status !== 'authenticated') {
       setCart(emptyCart)
       setLoading(false)
@@ -48,16 +51,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     try {
       const result = await ordersApi.get()
-      setCart(result.cart)
+      if (version === requestVersion.current) setCart(result.cart)
     } catch (cause) {
-      setCart(emptyCart)
-      showToast({
-        tone: 'info',
-        title: 'Panier indisponible',
-        description: errorMessage(cause),
-      })
+      if (version === requestVersion.current) {
+        setCart(emptyCart)
+        showToast({
+          tone: 'info',
+          title: 'Panier indisponible',
+          description: errorMessage(cause),
+        })
+      }
     } finally {
-      setLoading(false)
+      if (version === requestVersion.current) setLoading(false)
     }
   }, [status, showToast])
 
