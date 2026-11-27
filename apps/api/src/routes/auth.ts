@@ -15,7 +15,7 @@ import { authorize } from '../middlewares/authorize'
 import { clearAuthCookies, setAuthCookies } from '../lib/cookies'
 import { toSelfUser, type SelfUser } from '../lib/dto'
 import { HttpError } from '../lib/errors'
-import { storeOptimizedImage } from '../lib/images'
+import { storeOptimizedImage, storePrivateImage } from '../lib/images'
 import { hashPassword, verifyPassword } from '../lib/password'
 import { prisma } from '../lib/prisma'
 import { uniqueSlug } from '../lib/slug'
@@ -126,7 +126,7 @@ export async function authRoutes(app: FastifyInstance) {
       data = registerSchema.parse(payload)
       if (data.role !== 'MERCHANT') throw new HttpError(400, 'INVALID_REGISTRATION_ROLE', 'Ce formulaire est réservé aux vendeurs.')
       if (!files[0]) throw new HttpError(400, 'PAYMENT_PROOF_REQUIRED', 'Téléversez la preuve de paiement des frais vendeur.')
-      paymentProofUrl = (await storeOptimizedImage(files[0].buffer, files[0].mimetype)).url
+      paymentProofUrl = await storePrivateImage(files[0].buffer, files[0].mimetype)
     } else {
       data = registerSchema.parse(request.body)
       if (data.role === 'MERCHANT') {
