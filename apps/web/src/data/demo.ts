@@ -19,7 +19,7 @@ import type { Category, Listing, Vendor } from '../lib/types'
 /**
  * Données de démonstration UI uniquement.
  * Aucune règle métier n'est implémentée ici : les prix sont en centimes (RG-05),
- * les numéros WhatsApp en E.164 (RG-04) et aucun emplacement détaillé n'est
+ * aucun emplacement détaillé n'est
  * exposé publiquement (RG-17) — seul le site élargi est affiché.
  */
 
