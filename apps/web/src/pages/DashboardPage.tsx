@@ -492,7 +492,7 @@ export default function DashboardPage() {
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-xs font-bold text-ink">{order.client.name}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-muted">Tél. : {order.client.phone ?? order.client.whatsapp}</p>
+                        <p className="mt-0.5 text-[11px] text-ink-muted">Tél. : {order.client.phone}</p>
                         <p className="mt-0.5 text-[11px] text-ink-muted">{siteLabel(order.client.site)}</p>
                         {(order.client.buildingNumber || order.client.roomNumber || order.client.floor !== undefined) && (
                           <p className="mt-0.5 text-[11px] text-ink-muted">
