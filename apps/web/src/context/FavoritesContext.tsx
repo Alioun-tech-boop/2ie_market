@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -30,6 +31,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast()
   const [favorites, setFavorites] = useState<FavoriteDto[]>([])
   const [loading, setLoading] = useState(false)
+  const inFlight = useRef(new Set<string>())
 
   const refresh = useCallback(async () => {
     try {
@@ -68,6 +70,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback(
     async (listing: Listing) => {
+      if (inFlight.current.has(listing.id)) return favoriteIds.has(listing.id)
+      inFlight.current.add(listing.id)
       const wasSaved = favoriteIds.has(listing.id)
       const previousFavorites = favorites
       setFavorites((current) =>
@@ -92,6 +96,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           description: cause instanceof ApiError ? cause.message : 'Vérifiez votre connexion puis réessayez.',
         })
         return wasSaved
+      } finally {
+        inFlight.current.delete(listing.id)
       }
     },
     [favoriteIds, favorites, showToast],
