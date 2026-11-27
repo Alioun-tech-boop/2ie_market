@@ -89,7 +89,6 @@ export const registerSchema = z
     ...locationSchema.shape,
     storeName: z.string().trim().min(2).max(120).optional(),
     description: z.string().trim().min(20).max(2000).optional(),
-    whatsapp: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.role !== 'MERCHANT') return
@@ -101,13 +100,6 @@ export const registerSchema = z
         code: 'custom',
         path: ['description'],
         message: 'Décrivez votre activité en au moins 20 caractères.',
-      })
-    }
-    if (!data.whatsapp || toE164(data.whatsapp) === null) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['whatsapp'],
-        message: 'Un numéro WhatsApp valide est obligatoire.',
       })
     }
   })
