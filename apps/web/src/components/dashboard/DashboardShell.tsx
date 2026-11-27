@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { LogOut } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/cn'
 
 export interface DashboardNavItem {
@@ -28,6 +31,14 @@ export function DashboardShell({
   action?: ReactNode
   children: ReactNode
 }) {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleLogout() {
+    await logout()
+    await navigate({ to: '/' })
+  }
+
   return (
     <main className="min-h-[calc(100vh-4rem)] min-w-0 overflow-x-clip bg-canvas pb-20">
       <div className="container-premium min-w-0 pt-5 sm:pt-8 lg:pt-12">
@@ -37,7 +48,17 @@ export function DashboardShell({
             <h1 className="mt-2 break-words text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{title}</h1>
             <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-ink-muted">{description}</p>
           </div>
-          {action && <div className="w-full min-w-0 sm:w-auto sm:shrink-0">{action}</div>}
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
+            {action}
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-3.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-500/20"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Se déconnecter
+            </button>
+          </div>
         </header>
 
         <div className="mt-5 grid min-w-0 gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
