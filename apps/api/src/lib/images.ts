@@ -184,7 +184,7 @@ export async function signedPrivateImageUrl(objectPath: string | null): Promise<
   if (!objectPath) return null
   if (objectPath.startsWith('/uploads/seller-proofs/')) {
     const filename = objectPath.slice('/uploads/seller-proofs/'.length)
-    if (!/^[0-9a-f-]{36}\\.(?:pdf|webp)$/i.test(filename)) return null
+    if (!/^[0-9a-f-]{36}\.(?:pdf|webp)$/i.test(filename)) return null
     // Le fichier local est servi uniquement par une route admin authentifiée.
     return `/api/v1/admin/private-proofs/${filename}`
   }
