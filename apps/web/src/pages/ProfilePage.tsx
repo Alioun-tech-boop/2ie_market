@@ -60,7 +60,6 @@ export default function ProfilePage() {
     user?.location ?? { site: 'KAMBOINSIN', buildingNumber: '', roomNumber: '', floor: 0 },
   )
   const [storeName, setStoreName] = useState(user?.store?.name ?? '')
-  const [whatsapp, setWhatsapp] = useState(user?.store?.whatsapp ?? '')
   const [description, setDescription] = useState(user?.store?.description ?? '')
   const [deliveryModes, setDeliveryModes] = useState<DeliveryMode[]>(
     user?.store?.deliveryModes ?? ['HAND_DELIVERY', 'MEETUP_POINT'],
@@ -79,7 +78,6 @@ export default function ProfilePage() {
       setLocation(next.location)
       if (next.store) {
         setStoreName(next.store.name)
-        setWhatsapp(next.store.whatsapp)
         setDescription(next.store.description)
         setDeliveryModes(next.store.deliveryModes)
       }
@@ -109,7 +107,7 @@ export default function ProfilePage() {
   async function submitStore(event: FormEvent) {
     event.preventDefault()
     await withSave(
-      () => updateStore({ name: storeName, whatsapp, description, deliveryModes }),
+      () => updateStore({ name: storeName, description, deliveryModes }),
       'Votre boutique est à jour.',
     )
   }
