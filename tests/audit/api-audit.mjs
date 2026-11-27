@@ -436,6 +436,7 @@ await check('Ajout au panier multi-boutiques', async () => {
   assert.equal(second.data.cart.groups.length, 2)
   assert.equal(second.data.cart.itemCount, 3)
   assert.equal(second.data.cart.totalCents, 500000)
+  assert.ok(second.data.cart.groups.every((group) => !('whatsapp' in group.store)), 'aucun champ WhatsApp dans le panier')
 })
 
 await check('Note de panier par boutique', async () => {
@@ -462,6 +463,7 @@ await check('Commande et répartition multi-commerçants', async () => {
   assert.equal(orderGroup.orders.length, 2, 'deux sous-commandes attendues')
   assert.equal(orderGroup.totalCents, 500000)
   assert.equal(orderGroup.orders.reduce((sum, order) => sum + order.totalCents, 0), 500000)
+  assert.ok(orderGroup.orders.every((order) => !('whatsapp' in order.merchant) && !('whatsapp' in order.client)), 'aucun champ WhatsApp dans les commandes')
   merchant1Order = orderGroup.orders.find((order) => order.merchant.id === merchant1User.store.id)
   merchant2Order = orderGroup.orders.find((order) => order.merchant.id === merchant2User.store.id)
   assert.ok(merchant1Order && merchant2Order)
