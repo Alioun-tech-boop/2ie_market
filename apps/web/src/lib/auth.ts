@@ -31,7 +31,6 @@ export interface SelfUser {
     deliveryModes: DeliveryMode[]
     isActive: boolean
     approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
-    paymentProofUrl: string | null
     reviewNote: string | null
     reviewedAt: string | null
     createdAt: string
