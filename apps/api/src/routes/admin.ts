@@ -1,7 +1,10 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { categorySchema, ORDER_STATUSES, SITES, slugify, updateCategorySchema } from '@2ie/shared'
 import type { Prisma } from '@prisma/client'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { config } from '../config'
 import { authenticate } from '../middlewares/authenticate'
 import { authorize } from '../middlewares/authorize'
 import { toAdminUser } from '../lib/dto'
@@ -308,6 +311,26 @@ function toAuditDto(entry: AuditRecord) {
 }
 
 export async function adminRoutes(app: FastifyInstance) {
+  app.get('/private-proofs/:filename', adminGuard, async (request, reply) => {
+    const { filename } = z.object({
+      filename: z.string().regex(/^[0-9a-f-]{36}\\.(?:pdf|webp)$/i),
+    }).parse(request.params)
+    let data: Buffer
+    try {
+      data = await readFile(join(config.uploadsDir, 'seller-proofs', filename))
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new HttpError(404, 'PROOF_NOT_FOUND', 'Justificatif introuvable.')
+      }
+      throw error
+    }
+    const contentType = filename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/webp'
+    return reply
+      .header('Cache-Control', 'private, no-store')
+      .header('X-Content-Type-Options', 'nosniff')
+      .type(contentType)
+      .send(data)
+  })
   app.get('/merchant-applications', adminGuard, async () => {
     const stores = await prisma.store.findMany({
       where: { approvalStatus: { in: ['PENDING', 'REJECTED'] } },
