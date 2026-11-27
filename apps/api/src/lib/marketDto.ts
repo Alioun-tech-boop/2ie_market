@@ -139,7 +139,6 @@ export function toListingCard(listing: ListingCardRecord) {
       name: listing.store.name,
       slug: listing.store.slug,
       logoUrl: listing.store.logoUrl,
-      whatsapp: listing.store.whatsappE164,
       site: listing.store.location.site,
     },
     createdAt: listing.createdAt.toISOString(),
