@@ -29,7 +29,7 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
     try {
       await logout()
     } finally {
-      await navigate({ to: '/' })
+      await navigate({ to: '/connexion' })
     }
   }
 
