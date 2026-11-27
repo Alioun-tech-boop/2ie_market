@@ -28,20 +28,21 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true
+    let cachedSnapshot: {
+      categories?: PublicCategory[]; popular?: Listing[]; recent?: Listing[]; services?: Listing[]
+    } = {}
     try {
       const cached = window.localStorage.getItem('2ie-market-home-v1')
       if (cached) {
-        const snapshot = JSON.parse(cached) as {
-          categories?: PublicCategory[]; popular?: Listing[]; recent?: Listing[]; services?: Listing[]
-        }
-        if (snapshot.categories) setCategories(snapshot.categories)
-        if (snapshot.popular) setPopular(snapshot.popular)
-        if (snapshot.recent) setRecent(snapshot.recent)
-        if (snapshot.services) setServices(snapshot.services)
-        if (snapshot.categories || snapshot.popular || snapshot.recent || snapshot.services) setLoading(false)
+        cachedSnapshot = JSON.parse(cached) as typeof cachedSnapshot
+        if (cachedSnapshot.categories) setCategories(cachedSnapshot.categories)
+        if (cachedSnapshot.popular) setPopular(cachedSnapshot.popular)
+        if (cachedSnapshot.recent) setRecent(cachedSnapshot.recent)
+        if (cachedSnapshot.services) setServices(cachedSnapshot.services)
+        if (cachedSnapshot.categories || cachedSnapshot.popular || cachedSnapshot.recent || cachedSnapshot.services) setLoading(false)
       }
     } catch {
-      window.localStorage.removeItem('2ie-market-home-v1')
+      try { window.localStorage.removeItem('2ie-market-home-v1') } catch { /* Stockage indisponible. */ }
     }
     ;(async () => {
       try {
@@ -59,10 +60,10 @@ export default function HomePage() {
 
         try {
           const snapshot = {
-            categories: categoryResult.status === 'fulfilled' ? categoryResult.value.categories : categories,
-            popular: popularResult.status === 'fulfilled' ? popularResult.value.listings : popular,
-            recent: recentResult.status === 'fulfilled' ? recentResult.value.listings : recent,
-            services: serviceResult.status === 'fulfilled' ? serviceResult.value.listings : services,
+            categories: categoryResult.status === 'fulfilled' ? categoryResult.value.categories : (cachedSnapshot.categories ?? categories),
+            popular: popularResult.status === 'fulfilled' ? popularResult.value.listings : (cachedSnapshot.popular ?? popular),
+            recent: recentResult.status === 'fulfilled' ? recentResult.value.listings : (cachedSnapshot.recent ?? recent),
+            services: serviceResult.status === 'fulfilled' ? serviceResult.value.listings : (cachedSnapshot.services ?? services),
           }
           window.localStorage.setItem('2ie-market-home-v1', JSON.stringify(snapshot))
         } catch { /* Le cache reste facultatif si le stockage est plein ou désactivé. */ }
