@@ -18,7 +18,6 @@ export function AdminShell({
   description,
   items,
   active,
-  onSelect,
   action,
   children,
 }: {
@@ -26,7 +25,6 @@ export function AdminShell({
   description: string
   items: AdminNavItem[]
   active: string
-  onSelect: (id: string) => void
   action?: ReactNode
   children: ReactNode
 }) {
@@ -75,10 +73,9 @@ export function AdminShell({
             const Icon = item.icon
             const selected = item.id === active
             return (
-              <button
+              <a
                 key={item.id}
-                type="button"
-                onClick={() => onSelect(item.id)}
+                href={`/admin?section=${encodeURIComponent(item.id)}`}
                 aria-current={selected ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors',
@@ -97,7 +94,7 @@ export function AdminShell({
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
-              </button>
+              </a>
             )
           })}
         </nav>
