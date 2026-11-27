@@ -9,7 +9,6 @@ import {
   Eye,
   FileEdit,
   MapPin,
-  MessageCircle,
   Package,
   PauseCircle,
   PlayCircle,
@@ -39,7 +38,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationsContext'
 import { assetUrl } from '../lib/auth'
 import { cn } from '../lib/cn'
-import { formatPrice, siteLabel, whatsappLink } from '../lib/format'
+import { formatPrice, siteLabel } from '../lib/format'
 import { availabilityLabels, shortTypeLabels, statusLabels } from '../lib/listingLabels'
 import {
   marketApi,
@@ -56,7 +55,6 @@ import {
   type OrderStatus,
 } from '../lib/orderLabels'
 import { ordersApi } from '../lib/orders'
-import { merchantOrderWhatsappMessage } from '../lib/whatsapp'
 
 const ORDER_ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
   CONFIRMED: 'Accepter',
@@ -469,9 +467,6 @@ export default function DashboardPage() {
                         {order.meetingPointLabel && <p className="mt-0.5 text-[11px] text-ink-muted">RDV : {order.meetingPointLabel}</p>}
                         {order.clientNote && <p className="mt-2 rounded-lg bg-accent-50 px-2 py-1.5 text-[11px] leading-relaxed text-accent-700"><span className="font-bold">Instructions :</span> {order.clientNote}</p>}
                       </div>
-                      <a href={whatsappLink(order.client.whatsapp, merchantOrderWhatsappMessage(order))} target="_blank" rel="noreferrer" className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-50 px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-100">
-                        <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                      </a>
                     </div>
 
                     <div className="mt-4 border-t border-line pt-3">
@@ -497,9 +492,6 @@ export default function DashboardPage() {
                   </article>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] text-ink-muted">
-                WhatsApp ouvre une conversation avec un message prérempli : aucun message n’est envoyé automatiquement.
-              </p>
             </>
           )}
         </DashboardSection>
@@ -530,7 +522,6 @@ export default function DashboardPage() {
                 <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-ink-muted">{store.description}</p>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11px] text-ink-muted">
                   <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-brand-500" /> {siteLabel(store.location.site)} · {store.location.reference}</span>
-                  <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5 text-brand-500" /> {store.whatsapp}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {store.deliveryModes.map((mode) => (
