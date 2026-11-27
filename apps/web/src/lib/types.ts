@@ -10,7 +10,6 @@ export interface Vendor {
   storeName: string
   tagline: string
   site: Site
-  whatsapp: string
   tone: Tone
   listingsCount: number
 }
