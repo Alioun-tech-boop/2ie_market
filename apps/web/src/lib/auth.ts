@@ -192,7 +192,6 @@ export const authApi = {
   updateStore: (payload: {
     name?: string
     description?: string
-    whatsapp?: string
     logoUrl?: string | null
     deliveryModes?: DeliveryMode[]
   }) => api<UserResponse>('/me/store', { method: 'PATCH', body: JSON.stringify(payload) }),
