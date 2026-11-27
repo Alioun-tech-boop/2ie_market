@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { config } from '../config'
@@ -19,9 +19,45 @@ const ALLOWED_MIME = new Map([
   ['image/webp', 'webp'],
 ])
 
+function storageIsConfigured() {
+  return Boolean(config.supabaseUrl && config.supabaseServiceRoleKey && config.supabaseStorageBucket)
+}
+
+async function uploadToSupabase(filename: string, data: Buffer): Promise<string> {
+  const bucket = encodeURIComponent(config.supabaseStorageBucket)
+  const objectPath = encodeURIComponent(filename)
+  const endpoint = `${config.supabaseUrl}/storage/v1/object/${bucket}/${objectPath}`
+
+  let response: Response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        apikey: config.supabaseServiceRoleKey,
+        Authorization: `Bearer ${config.supabaseServiceRoleKey}`,
+        'Content-Type': 'image/webp',
+        'x-upsert': 'false',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
+      body: new Uint8Array(data),
+    })
+  } catch {
+    throw new HttpError(502, 'STORAGE_UNAVAILABLE', 'Le stockage des images est momentanément indisponible.')
+  }
+
+  if (!response.ok) {
+    // Ne jamais renvoyer au navigateur la réponse brute du fournisseur (elle peut contenir des détails internes).
+    throw new HttpError(502, 'STORAGE_UPLOAD_FAILED', 'L’image n’a pas pu être enregistrée. Vérifiez la configuration du stockage.')
+  }
+
+  return `${config.supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`
+}
+
 /**
- * Normalise une image en WebP (métadonnées supprimées, EXIF inclus), produit une vignette
- * et stocke les deux fichiers sous un nom UUID. Aucun fichier d'origine n'est conservé.
+ * Convertit les images en WebP sans métadonnées, génère une vignette,
+ * puis les conserve dans Supabase Storage en production. Le disque local
+ * reste réservé au développement : le disque éphémère de Render ne convient
+ * pas à la conservation des photos de profils, logos et annonces.
  */
 export async function storeOptimizedImage(input: Buffer, mimetype: string): Promise<StoredImage> {
   if (!ALLOWED_MIME.has(mimetype)) {
@@ -52,14 +88,30 @@ export async function storeOptimizedImage(input: Buffer, mimetype: string): Prom
     const filename = `${randomUUID()}.webp`
     const thumbFilename = `thumb-${filename}`
 
-    await Promise.all([
-      writeFile(join(config.uploadsDir, filename), main.data),
-      writeFile(join(config.uploadsDir, thumbFilename), thumb),
-    ])
+    let url: string
+    let thumbUrl: string
+
+    if (storageIsConfigured()) {
+      ;[url, thumbUrl] = await Promise.all([
+        uploadToSupabase(filename, main.data),
+        uploadToSupabase(thumbFilename, thumb),
+      ])
+    } else {
+      if (config.nodeEnv === 'production') {
+        throw new HttpError(503, 'STORAGE_NOT_CONFIGURED', 'Le stockage permanent des images n’est pas encore configuré.')
+      }
+      await mkdir(config.uploadsDir, { recursive: true })
+      await Promise.all([
+        writeFile(join(config.uploadsDir, filename), main.data),
+        writeFile(join(config.uploadsDir, thumbFilename), thumb),
+      ])
+      url = `/uploads/${filename}`
+      thumbUrl = `/uploads/${thumbFilename}`
+    }
 
     return {
-      url: `/uploads/${filename}`,
-      thumbUrl: `/uploads/${thumbFilename}`,
+      url,
+      thumbUrl,
       width: main.info.width,
       height: main.info.height,
       bytes: main.info.size,
