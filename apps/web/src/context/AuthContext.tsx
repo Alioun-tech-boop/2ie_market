@@ -21,7 +21,7 @@ interface AuthContextValue {
   user: SelfUser | null
   status: AuthStatus
   login: (payload: LoginPayload) => Promise<SelfUser>
-  register: (payload: RegisterPayload) => Promise<SelfUser>
+  register: (payload: RegisterPayload, paymentProof?: File) => Promise<SelfUser>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   updateProfile: (payload: Parameters<typeof authApi.updateProfile>[0]) => Promise<SelfUser>
@@ -74,8 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const register = useCallback(
-    async (payload: RegisterPayload) => {
-      const { user: next } = await authApi.register(payload)
+    async (payload: RegisterPayload, paymentProof?: File) => {
+      const { user: next } = await authApi.register(payload, paymentProof)
       apply(next)
       return next
     },
