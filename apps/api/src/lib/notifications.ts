@@ -76,6 +76,36 @@ function contentFor(type: NotificationType, payload: Record<string, unknown>) {
         message: `${text(payload.listingTitle) || 'Une annonce'} n’est plus visible par les clients.`,
         href: '/tableau-de-bord',
       }
+    case 'SUBSCRIPTION_REMINDER':
+      return {
+        title: 'Renouvellement bientôt nécessaire',
+        message: 'Votre abonnement vendeur arrive à échéance. Renouvelez-le pour conserver votre boutique active (1 000 FCFA).',
+        href: '/profil?tab=boutique',
+      }
+    case 'SUBSCRIPTION_EXPIRED':
+      return {
+        title: 'Abonnement vendeur expiré',
+        message: 'Votre abonnement est expiré. Votre boutique est suspendue jusqu’à validation du renouvellement de 1 000 FCFA.',
+        href: '/profil?tab=boutique',
+      }
+    case 'SUBSCRIPTION_PAYMENT_SUBMITTED':
+      return {
+        title: 'Nouveau renouvellement vendeur',
+        message: 'Un vendeur a transmis une preuve de paiement de 1 000 FCFA. Vérifiez-la dans l’administration.',
+        href: '/administration?section=subscription-renewals',
+      }
+    case 'SUBSCRIPTION_PAYMENT_APPROVED':
+      return {
+        title: 'Renouvellement validé',
+        message: 'Votre paiement mensuel de 1 000 FCFA est validé. Votre abonnement a été prolongé.',
+        href: '/profil?tab=boutique',
+      }
+    case 'SUBSCRIPTION_PAYMENT_REJECTED':
+      return {
+        title: 'Renouvellement refusé',
+        message: `Votre preuve de paiement a été refusée. ${text(payload.note) || 'Veuillez transmettre une nouvelle preuve.'}`,
+        href: '/profil?tab=boutique',
+      }
   }
 }
 
