@@ -23,6 +23,11 @@ const listQuery = z.object({
   sort: z.enum(['recent', 'price-asc', 'price-desc']).default('recent'),
 })
 
+const reviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(1000).optional().nullable(),
+}).strict()
+
 const reportSchema = z
   .object({
     reason: z.enum(['INAPPROPRIATE', 'FRAUD', 'PROHIBITED', 'MISLEADING', 'OTHER']),
@@ -271,5 +276,33 @@ export async function catalogRoutes(app: FastifyInstance) {
       average: aggregate._avg.rating ? Math.round(aggregate._avg.rating * 10) / 10 : null,
       reviews: reviews.map(toReviewDto),
     }
+  })
+  app.post('/stores/:slug/reviews', { preHandler: [authenticate] }, async (request, reply) => {
+    const { slug } = slugParam.parse(request.params)
+    const payload = reviewSchema.parse(request.body)
+    const store = await findActiveStore(slug)
+    const authorId = request.user!.id
+    if (store.ownerId === authorId) {
+      throw new HttpError(403, 'OWN_STORE_REVIEW', 'Vous ne pouvez pas noter votre propre boutique.')
+    }
+    const settings = await getPlatformSettings()
+    if (!settings.reviewsEnabled) {
+      throw new HttpError(403, 'REVIEWS_DISABLED', 'Les avis sont temporairement désactivés.')
+    }
+    const completedOrder = await prisma.order.findFirst({
+      where: { storeId: store.id, clientId: authorId, status: 'COMPLETED' },
+      select: { id: true },
+    })
+    if (!completedOrder) {
+      throw new HttpError(403, 'PURCHASE_REQUIRED', 'Vous pourrez laisser un avis après une commande terminée auprès de cette boutique.')
+    }
+    const review = await prisma.review.upsert({
+      where: { storeId_authorId: { storeId: store.id, authorId } },
+      create: { storeId: store.id, authorId, rating: payload.rating, comment: payload.comment?.trim() || null },
+      update: { rating: payload.rating, comment: payload.comment?.trim() || null },
+      include: { author: { select: { firstName: true, lastName: true, profilePhotoUrl: true } } },
+    })
+    reply.code(201)
+    return { review: toReviewDto(review) }
   })
 }
