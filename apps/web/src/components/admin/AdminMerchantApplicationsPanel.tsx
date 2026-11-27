@@ -101,7 +101,7 @@ export function AdminMerchantApplicationsPanel() {
               <div className="space-y-1 text-xs text-slate-600">
                 <p className="font-bold text-slate-900">{application.owner.firstName} {application.owner.lastName}</p>
                 <p>{application.owner.email}</p>
-                <p>{application.owner.phone} · WhatsApp {application.whatsapp}</p>
+                <p>{application.owner.phone}</p>
                 <p>{application.location.site} · Bâtiment {application.location.buildingNumber}, chambre {application.location.roomNumber}, étage {application.location.floor}</p>
                 <p className="pt-2 leading-relaxed">{application.description}</p>
               </div>
