@@ -1,6 +1,9 @@
 import {
   Archive,
+  AlertTriangle,
   Bell,
+  CalendarClock,
+  CreditCard,
   CheckCheck,
   CheckCircle2,
   Clock3,
@@ -24,6 +27,11 @@ const icons: Record<NotificationType, LucideIcon> = {
   NEW_ORDER: Bell,
   ORDER_STATUS: CheckCircle2,
   LISTING_ARCHIVED: Archive,
+  SUBSCRIPTION_REMINDER: CalendarClock,
+  SUBSCRIPTION_EXPIRED: AlertTriangle,
+  SUBSCRIPTION_PAYMENT_SUBMITTED: CreditCard,
+  SUBSCRIPTION_PAYMENT_APPROVED: CheckCircle2,
+  SUBSCRIPTION_PAYMENT_REJECTED: AlertTriangle,
 }
 
 function NotificationRow({ item }: { item: NotificationDto }) {
