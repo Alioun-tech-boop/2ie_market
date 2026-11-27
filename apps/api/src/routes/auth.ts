@@ -165,7 +165,7 @@ export async function authRoutes(app: FastifyInstance) {
                   name: data.storeName!,
                   slug: uniqueSlug(data.storeName!),
                   description: data.description!,
-                  whatsappE164: toE164(data.whatsapp!)!,
+                  whatsappE164: phone,
                   location: { create: locationData },
                   deliveryModes: DEFAULT_DELIVERY_MODES,
                   isActive: data.role !== 'MERCHANT',
