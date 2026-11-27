@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Flag, LayoutDashboard, Package, RefreshCw, ScrollText, Settings, ShoppingBag, Tags, Users, Store } from 'lucide-react'
 import { AdminAuditPanel } from '../components/admin/AdminAuditPanel'
 import { AdminCategoriesPanel } from '../components/admin/AdminCategoriesPanel'
@@ -68,10 +69,9 @@ function isSection(value: string): value is SectionId {
 
 export default function AdminPage() {
   const { showToast } = useToast()
-  const [section] = useState<SectionId>(() => {
-    const requested = new URLSearchParams(window.location.search).get('section')
-    return requested && isSection(requested) ? requested : 'overview'
-  })
+  const navigate = useNavigate({ from: '/admin' })
+  const search = useSearch({ from: '/admin' })
+  const section: SectionId = search.section && isSection(search.section) ? search.section : 'overview'
   const [overview, setOverview] = useState<AdminOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -116,6 +116,9 @@ export default function AdminPage() {
       description={copy.description}
       items={nav}
       active={section}
+      onSelect={(next) => {
+        if (isSection(next)) void navigate({ search: { section: next } })
+      }}
       action={
         <Button
           size="sm"
