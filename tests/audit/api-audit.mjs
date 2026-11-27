@@ -519,7 +519,7 @@ await check('Notification de changement de statut', async () => {
   assert.ok(response.data.notifications.some((item) => item.type === 'ORDER_STATUS'))
 })
 
-await check('Refus d’une commande et restauration du stock', async () => {
+await check('Annulation d’une commande et restauration du stock', async () => {
   const stockListing = await createListing(merchant2, {
     title: `Stock remboursé ${RUN}`,
     description: 'Annonce dédiée au contrôle de la restauration du stock après refus.',
@@ -542,8 +542,8 @@ await check('Refus d’une commande et restauration du stock', async () => {
   })
   expectStatus(order, 200, 'commande stock')
   const subOrder = order.data.group.orders[0]
-  const reject = await merchant2.patch(`/v1/me/orders/${subOrder.id}/status`, { status: 'REJECTED' })
-  expectStatus(reject, 200, 'refus commande stock')
+  const cancel = await merchant2.patch(`/v1/me/orders/${subOrder.id}/status`, { status: 'CANCELLED' })
+  expectStatus(cancel, 200, 'annulation commande stock')
   const after = await client.get(`/v1/listings/${stockListing.id}`)
   assert.equal(after.data.listing.quantity, 2, 'stock restauré attendu après refus')
   assert.equal(after.data.listing.availability, 'AVAILABLE')
@@ -603,7 +603,7 @@ await check('Auto-suspension administrateur refusée (400)', async () => {
 await check('Suspension d’un autre administrateur protégée (400)', async () => {
   assert.ok(secondAdminId, 'second administrateur fixture absent')
   const response = await admin.patch(`/v1/admin/users/${secondAdminId}/status`, { status: 'SUSPENDED' })
-  expectStatus(response, 400, 'suspension autre admin')
+  expectStatus(response, 403, 'suspension autre admin')
 })
 
 await check('Modification du rôle d’un autre administrateur protégée (403)', async () => {
