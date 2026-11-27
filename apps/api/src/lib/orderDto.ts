@@ -102,7 +102,6 @@ export interface CartDto {
       slug: string
       logoUrl: string | null
       site: Site
-      whatsapp: string
       deliveryModes: DeliveryMode[]
     }
     note: string
