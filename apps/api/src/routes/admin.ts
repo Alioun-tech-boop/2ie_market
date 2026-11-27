@@ -298,6 +298,77 @@ function toAuditDto(entry: AuditRecord) {
 }
 
 export async function adminRoutes(app: FastifyInstance) {
+  app.get('/merchant-applications', adminGuard, async () => {
+    const stores = await prisma.store.findMany({
+      where: { approvalStatus: { in: ['PENDING', 'REJECTED'] } },
+      include: {
+        owner: { select: { id: true, firstName: true, lastName: true, email: true, phoneE164: true, createdAt: true } },
+        location: { select: { site: true, buildingNumber: true, roomNumber: true, floor: true, reference: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    })
+    return {
+      applications: stores.map((store) => ({
+        id: store.id,
+        status: store.approvalStatus,
+        storeName: store.name,
+        description: store.description,
+        whatsapp: store.whatsappE164,
+        paymentAmount: 1000,
+        paymentProofUrl: store.paymentProofUrl,
+        reviewNote: store.reviewNote,
+        createdAt: store.createdAt.toISOString(),
+        owner: {
+          id: store.owner.id,
+          firstName: store.owner.firstName,
+          lastName: store.owner.lastName,
+          email: store.owner.email,
+          phone: store.owner.phoneE164,
+          createdAt: store.owner.createdAt.toISOString(),
+        },
+        location: store.location,
+      })),
+    }
+  })
+
+  app.patch('/merchant-applications/:id', adminWriteGuard, async (request) => {
+    const { id } = idParamSchema.parse(request.params)
+    const payload = z.object({
+      decision: z.enum(['APPROVE', 'REJECT']),
+      note: z.string().trim().max(500).optional().nullable(),
+    }).strict().parse(request.body)
+    const store = await prisma.store.findUnique({ where: { id }, include: { owner: true } })
+    if (!store) throw new HttpError(404, 'MERCHANT_APPLICATION_NOT_FOUND', 'Demande vendeur introuvable.')
+    if (store.approvalStatus === 'APPROVED') {
+      throw new HttpError(409, 'MERCHANT_ALREADY_APPROVED', 'Cette boutique est déjà validée.')
+    }
+    if (payload.decision === 'REJECT' && !payload.note?.trim()) {
+      throw new HttpError(400, 'REJECTION_NOTE_REQUIRED', 'Indiquez le motif du refus.')
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const approved = payload.decision === 'APPROVE'
+      await tx.store.update({
+        where: { id },
+        data: {
+          approvalStatus: approved ? 'APPROVED' : 'REJECTED',
+          isActive: approved && store.owner.status === 'ACTIVE',
+          reviewNote: payload.note?.trim() || null,
+          reviewedAt: new Date(),
+        },
+      })
+      await tx.auditLog.create({
+        data: {
+          actorId: request.user!.id,
+          action: approved ? 'MERCHANT_APPLICATION_APPROVED' : 'MERCHANT_APPLICATION_REJECTED',
+          targetType: 'Store',
+          targetId: id,
+          meta: { ownerId: store.ownerId, note: payload.note?.trim() || null, paymentAmount: 1000 },
+        },
+      })
+    })
+    return { ok: true, status: payload.decision === 'APPROVE' ? 'APPROVED' : 'REJECTED' }
+  })
   app.get('/overview', adminGuard, async () => {
     const [
       userGroups,
@@ -470,7 +541,7 @@ export async function adminRoutes(app: FastifyInstance) {
         // tant que le compte commerçant est suspendu.
         await tx.store.updateMany({
           where: { ownerId: id },
-          data: { isActive: status === 'ACTIVE' },
+          data: { isActive: status === 'ACTIVE' && (await tx.store.findUnique({ where: { ownerId: id }, select: { approvalStatus: true } }))?.approvalStatus === 'APPROVED' },
         })
       }
       await tx.auditLog.create({
@@ -517,6 +588,9 @@ export async function adminRoutes(app: FastifyInstance) {
 
       if (target.store) {
         if (role === 'MERCHANT') {
+          if (target.store.approvalStatus !== 'APPROVED') {
+            throw new HttpError(403, 'MERCHANT_NOT_APPROVED', 'La demande vendeur doit être validée avant l’activation du rôle.')
+          }
           await tx.store.update({ where: { id: target.store.id }, data: { isActive: true } })
         } else {
           await tx.store.update({ where: { id: target.store.id }, data: { isActive: false } })
