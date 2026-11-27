@@ -58,7 +58,7 @@ export default function RegisterPage() {
         phone,
         password,
         ...location,
-        ...(role === 'MERCHANT' ? { storeName, whatsapp: phone, description } : {}),
+        ...(role === 'MERCHANT' ? { storeName, description } : {}),
       }, paymentProof ?? undefined)
       showToast({
         tone: 'success',
