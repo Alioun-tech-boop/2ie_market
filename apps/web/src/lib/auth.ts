@@ -30,6 +30,10 @@ export interface SelfUser {
     logoUrl: string | null
     deliveryModes: DeliveryMode[]
     isActive: boolean
+    approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
+    paymentProofUrl: string | null
+    reviewNote: string | null
+    reviewedAt: string | null
     createdAt: string
     location: { site: Site; reference: string }
   } | null
@@ -157,8 +161,15 @@ export const authApi = {
   refresh: () => api<UserResponse>('/auth/refresh', { method: 'POST' }),
   login: (payload: LoginPayload) =>
     api<UserResponse>('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
-  register: (payload: RegisterPayload) =>
-    api<UserResponse>('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
+  register: (payload: RegisterPayload, paymentProof?: File) => {
+    if (!paymentProof) {
+      return api<UserResponse>('/auth/register', { method: 'POST', body: JSON.stringify(payload) })
+    }
+    const form = new FormData()
+    form.append('payload', JSON.stringify(payload))
+    form.append('photos', paymentProof)
+    return api<UserResponse>('/auth/register', { method: 'POST', body: form })
+  },
   logout: () => api<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
   updateProfile: (payload: {
     firstName?: string
