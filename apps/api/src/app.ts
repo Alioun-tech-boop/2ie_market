@@ -17,6 +17,8 @@ import { favoriteRoutes } from './routes/favorites'
 import { merchantRoutes } from './routes/merchant'
 import { notificationRoutes } from './routes/notifications'
 import { orderRoutes } from './routes/orders'
+import { subscriptionRoutes } from './routes/subscriptions'
+import { runSubscriptionReminders } from './lib/subscriptionReminders'
 
 export async function buildApp() {
   const app = Fastify({
@@ -96,8 +98,20 @@ export async function buildApp() {
   await app.register(favoriteRoutes, { prefix: '/v1' })
   await app.register(orderRoutes, { prefix: '/v1' })
   await app.register(notificationRoutes, { prefix: '/v1' })
+  await app.register(subscriptionRoutes, { prefix: '/v1' })
   await app.register(merchantRoutes, { prefix: '/v1' })
   await app.register(adminRoutes, { prefix: '/v1/admin' })
+
+  let subscriptionReminderTimer: ReturnType<typeof setInterval> | undefined
+  app.addHook('onReady', async () => {
+    void runSubscriptionReminders().catch((error) => app.log.error(error, 'Subscription reminder job failed'))
+    subscriptionReminderTimer = setInterval(() => {
+      void runSubscriptionReminders().catch((error) => app.log.error(error, 'Subscription reminder job failed'))
+    }, 6 * 60 * 60 * 1000)
+  })
+  app.addHook('onClose', async () => {
+    if (subscriptionReminderTimer) clearInterval(subscriptionReminderTimer)
+  })
 
   return app
 }
