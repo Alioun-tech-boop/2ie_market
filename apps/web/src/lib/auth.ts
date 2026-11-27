@@ -152,7 +152,6 @@ export interface RegisterPayload {
   floor: number
   storeName?: string
   description?: string
-  whatsapp?: string
 }
 
 export interface LoginPayload {
