@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { generateReference } from '@2ie/shared'
 import '../src/config'
-import { hashPassword, verifyPassword } from '../src/lib/password'
+import { hashPassword } from '../src/lib/password'
 import { prisma } from '../src/lib/prisma'
 
 const email = (process.env.ADMIN_EMAIL ?? 'admin@2ie-market.local').toLowerCase()
@@ -254,37 +254,14 @@ async function seedAdminIfConfigured() {
   const existing = await prisma.user.findUnique({ where: { email: configuredEmail } })
 
   if (existing) {
-    const passwordMatches = await verifyPassword(existing.passwordHash, password)
-    if (existing.role === 'ADMIN' && existing.status === 'ACTIVE' && passwordMatches) {
-      console.log(`Compte administrateur vérifié : ${configuredEmail}`)
-      return
+    // Le script de démarrage ne doit jamais promouvoir un compte existant,
+    // réactiver un compte suspendu ni réinitialiser son mot de passe.
+    if (existing.role !== 'ADMIN' || existing.status !== 'ACTIVE') {
+      throw new Error(
+        `ADMIN_EMAIL correspond à un compte existant qui n’est pas un administrateur actif. Aucun changement n’a été appliqué.`,
+      )
     }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: existing.id },
-        data: {
-          role: 'ADMIN',
-          status: 'ACTIVE',
-          passwordHash: await hashPassword(password),
-          firstName,
-          lastName,
-        },
-      })
-      await tx.refreshToken.updateMany({
-        where: { userId: existing.id, revokedAt: null },
-        data: { revokedAt: new Date() },
-      })
-      await tx.auditLog.create({
-        data: {
-          action: 'ADMIN_BOOTSTRAPPED',
-          targetType: 'User',
-          targetId: existing.id,
-          meta: { email: configuredEmail, previousRole: existing.role },
-        },
-      })
-    })
-    console.log(`Compte administrateur sécurisé : ${configuredEmail}`)
+    console.log(`Compte administrateur existant conservé : ${configuredEmail}`)
     return
   }
 
@@ -320,11 +297,16 @@ async function seedAdminIfConfigured() {
 }
 
 async function main() {
-  await seedCategories()
-  await seedMeetingPoints()
+  const bootstrapOnly = process.argv.includes('--bootstrap-only')
+
+  if (!bootstrapOnly) {
+    await seedCategories()
+    await seedMeetingPoints()
+  }
+
   await seedAdminIfConfigured()
 
-  if (process.argv.includes('--reference-only')) {
+  if (!bootstrapOnly && process.argv.includes('--reference-only')) {
     await seedDemoMarketplace()
   }
 }
