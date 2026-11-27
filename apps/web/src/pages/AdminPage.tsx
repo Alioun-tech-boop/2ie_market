@@ -135,7 +135,7 @@ export default function AdminPage() {
       {section === 'overview' && <AdminOverviewPanel overview={overview} loading={loading} />}
       {section === 'merchant-applications' && <AdminMerchantApplicationsPanel key={refreshKey} />}
       {section === 'subscription-renewals' && <AdminSubscriptionRenewalsPanel key={refreshKey} />}
-      {section === 'users' && <AdminUsersPanel key={refreshKey} />
+      {section === 'users' && <AdminUsersPanel key={refreshKey} />}
       {section === 'listings' && <AdminListingsPanel key={refreshKey} />}
       {section === 'orders' && <AdminOrdersPanel key={refreshKey} />}
       {section === 'reports' && <AdminReportsPanel key={refreshKey} />}
