@@ -55,6 +55,17 @@ export async function buildApp() {
   // Protection CSRF : toute mutation issue du navigateur doit provenir du frontend officiel.
   // Les requêtes sans Origin sont également refusées afin d'éviter le contournement du contrôle.
   app.addHook('onRequest', async (request) => {
+    // Les justificatifs vendeur ne doivent jamais être servis par le dossier
+    // statique public, même si un ancien enregistrement pointe vers ce chemin.
+    let pathname = request.url.split('?')[0] ?? request.url
+    try {
+      pathname = decodeURIComponent(pathname)
+    } catch {
+      throw new HttpError(400, 'INVALID_PATH', 'Chemin de ressource invalide.')
+    }
+    if (pathname.startsWith('/uploads/seller-proofs/')) {
+      throw new HttpError(404, 'NOT_FOUND', 'Ressource introuvable.')
+    }
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return
     if (request.headers.origin !== config.frontendUrl) {
       throw new HttpError(403, 'ORIGIN_FORBIDDEN', 'Origine de la requête non autorisée.')
