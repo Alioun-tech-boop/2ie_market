@@ -70,12 +70,6 @@ export async function buildApp() {
   await app.register(multipart, {
     limits: { fileSize: config.maxPhotoBytes, files: config.maxPhotosPerListing },
   })
-  await app.register(fastifyStatic, {
-    root: config.uploadsDir,
-    prefix: '/uploads/',
-    decorateReply: false,
-  })
-
   // En-têtes défensifs pour toutes les réponses de l'API.
   app.addHook('onSend', async (request, reply, payload) => {
     // Les réponses API peuvent contenir des données propres à un compte.
@@ -111,6 +105,12 @@ export async function buildApp() {
     if (request.headers.origin !== config.frontendUrl) {
       throw new HttpError(403, 'ORIGIN_FORBIDDEN', 'Origine de la requête non autorisée.')
     }
+  })
+
+  await app.register(fastifyStatic, {
+    root: config.uploadsDir,
+    prefix: '/uploads/',
+    decorateReply: false,
   })
 
   app.setErrorHandler((unknownError, request, reply) => {
