@@ -62,9 +62,21 @@ export async function subscriptionRoutes(app: FastifyInstance) {
     })
     if (existing) throw new HttpError(409, 'SUBSCRIPTION_PAYMENT_PENDING', 'Votre preuve est déjà en cours de vérification.')
     const proofPath = await storePrivateImage(proof.buffer, proof.mimetype)
-    const payment = await prisma.merchantSubscriptionPayment.create({
-      data: { storeId: store.id, amount: PRICE, proofPath },
-      select: { id: true, submittedAt: true },
+    const payment = await prisma.$transaction(async (tx) => {
+      // Verrou PostgreSQL par boutique : deux envois simultanés ne peuvent
+      // pas créer deux renouvellements en attente.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${store.id}))`
+      const pending = await tx.merchantSubscriptionPayment.findFirst({
+        where: { storeId: store.id, status: 'PENDING' },
+        select: { id: true },
+      })
+      if (pending) {
+        throw new HttpError(409, 'SUBSCRIPTION_PAYMENT_PENDING', 'Votre preuve est déjà en cours de vérification.')
+      }
+      return tx.merchantSubscriptionPayment.create({
+        data: { storeId: store.id, amount: PRICE, proofPath },
+        select: { id: true, submittedAt: true },
+      })
     })
     const admins = await prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' }, select: { id: true } })
     if (admins.length) {
