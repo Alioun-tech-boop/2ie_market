@@ -67,7 +67,23 @@ async function removeFiles(urls: (string | null)[]) {
 }
 
 export async function merchantRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticate, authorize('MERCHANT')] }
+  const requireApprovedMerchant = async (request: Parameters<NonNullable<FastifyInstance['addHook']>>[1] extends never ? never : any) => {
+    const store = await prisma.store.findUnique({
+      where: { ownerId: request.user!.id },
+      select: { approvalStatus: true },
+    })
+    if (!store) throw new HttpError(404, 'STORE_NOT_FOUND', 'Boutique introuvable.')
+    if (store.approvalStatus !== 'APPROVED') {
+      throw new HttpError(
+        403,
+        store.approvalStatus === 'PENDING' ? 'MERCHANT_PENDING' : 'MERCHANT_REJECTED',
+        store.approvalStatus === 'PENDING'
+          ? 'Votre demande vendeur est en attente de validation administrative.'
+          : 'Votre demande vendeur a été refusée. Contactez l’administration.',
+      )
+    }
+  }
+  const guard = { preHandler: [authenticate, authorize('MERCHANT'), requireApprovedMerchant] }
 
   app.get('/me/dashboard', guard, async (request) => {
     const { status } = dashboardQuery.parse(request.query ?? {})
