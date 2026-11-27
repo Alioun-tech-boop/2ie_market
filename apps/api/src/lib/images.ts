@@ -182,7 +182,7 @@ export async function storePrivateImage(input: Buffer, mimetype: string): Promis
 /** Génère une URL signée courte pour qu'un administrateur consulte un justificatif privé. */
 export async function signedPrivateImageUrl(objectPath: string | null): Promise<string | null> {
   if (!objectPath) return null
-  if (/^https?:\\/\\//i.test(objectPath) || objectPath.startsWith('/uploads/')) return objectPath
+  if (/^https?:\/\//i.test(objectPath) || objectPath.startsWith('/uploads/')) return objectPath
   const bucket = encodeURIComponent(config.supabasePrivateBucket)
   const path = objectPath.split('/').map(encodeURIComponent).join('/')
   let response: Response
