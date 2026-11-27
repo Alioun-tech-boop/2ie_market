@@ -91,6 +91,9 @@ function publicErrorMessage(code: string, status: number): string {
     CONFLICT: 'Cette opération ne peut pas être effectuée avec ces informations.',
     FILE_TOO_LARGE: 'Le fichier est trop volumineux. Choisissez une image de moins de 2 Mo.',
     INVALID_IMAGE: 'Le fichier image ne peut pas être utilisé. Essayez un autre format.',
+    STORAGE_NOT_CONFIGURED: 'Le stockage des images doit être configuré par l’administrateur.',
+    STORAGE_UNAVAILABLE: 'Le stockage des images est temporairement indisponible. Réessayez.',
+    STORAGE_UPLOAD_FAILED: 'L’image n’a pas pu être enregistrée. Réessayez dans quelques instants.',
     VALIDATION_ERROR: 'Certaines informations sont incorrectes. Vérifiez les champs indiqués.',
   }
   if (messages[code]) return messages[code]
