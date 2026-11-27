@@ -95,14 +95,11 @@ export function SettingsPanel({ user }: { user: SelfUser }) {
       </dl>
 
       <Button
+        type="button"
         variant="outline"
         className="mt-4"
         iconLeft={<LogOut className="h-4 w-4" />}
-        onClick={() => {
-          void (async () => {
-            await logout()
-          })()
-        }}
+        onClick={() => void logout()}
       >
         Se déconnecter
       </Button>
