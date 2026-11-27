@@ -68,7 +68,7 @@ function isSection(value: string): value is SectionId {
 
 export default function AdminPage() {
   const { showToast } = useToast()
-  const [section, setSection] = useState<SectionId>('overview')
+  const [section, setSection] = useState<SectionId>(() => {\n    const requested = new URLSearchParams(window.location.search).get('section')\n    return requested && isSection(requested) ? requested : 'overview'\n  })
   const [overview, setOverview] = useState<AdminOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
