@@ -122,8 +122,7 @@ export default function ProfilePage() {
       <div className="container-premium max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">Mon espace</p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-900">Mon profil</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-brand-900">Mon profil</h1>
           </div>
           <Button
             type="button"
