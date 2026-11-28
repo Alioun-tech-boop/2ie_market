@@ -19,7 +19,6 @@ const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
 // protection CSRF sans bloquer les connexions après un changement de domaine.
 const frontendUrls = [...new Set([
   frontendUrl,
-  frontendUrls,
   ...(process.env.FRONTEND_URLS ?? '').split(','),
   'https://2ie-market-app.netlify.app',
   'https://2ie-market-bf.netlify.app',
@@ -32,6 +31,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL ?? '',
   jwtSecret,
   frontendUrl,
+  frontendUrls,
   // Render et les autres plateformes PaaS fournissent PORT. API_PORT reste
   // compatible avec le développement local existant.
   port: Number(process.env.PORT ?? process.env.API_PORT ?? 3000),
