@@ -34,8 +34,8 @@ export function Header({ onFocusSearch }: { onFocusSearch?: () => void }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/85 backdrop-blur-xl">
-      <div className="container-premium flex h-16 min-w-0 items-center justify-between gap-2 sm:gap-3 lg:h-[72px]">
+    <header className="relative z-40 bg-transparent">
+      <div className="container-premium flex h-14 min-w-0 items-center justify-between gap-2 sm:gap-3 lg:h-16">
         <Link to="/" aria-label="2ie Market — accueil" className="shrink-0">
           <Logo />
         </Link>
