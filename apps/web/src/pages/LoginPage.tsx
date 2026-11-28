@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const user = await login({ email, password })
       showToast({ tone: 'success', title: `Bon retour, ${user.firstName} !`, description: 'Vous êtes connecté.' })
-      await navigate({ to: '/profil' })
+      await navigate({ to: '/', replace: true })
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'Connexion impossible pour le moment.')
     } finally {
