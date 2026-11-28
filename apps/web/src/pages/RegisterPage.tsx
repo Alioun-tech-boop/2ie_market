@@ -71,7 +71,7 @@ export default function RegisterPage() {
         title: role === 'MERCHANT' ? 'Demande envoyée' : `Bienvenue, ${user.firstName} !`,
         description: role === 'MERCHANT' ? 'Votre dossier est en attente de validation par l’administration.' : 'Votre compte est créé.',
       })
-      await navigate({ to: '/profil' })
+      await navigate({ to: '/', replace: true })
     } catch (cause) {
       if (cause instanceof ApiError) {
         setFieldErrors(cause.issues?.fieldErrors ?? {})
