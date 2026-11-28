@@ -27,8 +27,9 @@ const photoParam = z.object({
   photoId: z.string().uuid('Identifiant invalide.'),
 })
 
-function slugifyListing(title: string): string {
-  const base = title
+function slugifyListing(title: unknown): string {
+  const safeTitle = typeof title === 'string' ? title : ''
+  const base = safeTitle
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
