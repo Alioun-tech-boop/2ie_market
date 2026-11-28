@@ -24,7 +24,7 @@ interface ToastMessage {
   tone: ToastTone
 }
 
-type ToastInput = Omit<ToastMessage, 'id'>
+type ToastInput = Omit<ToastMessage, 'id'> & { duration?: number }
 
 const ToastContext = createContext<{ showToast: (message: ToastInput) => void } | null>(null)
 
@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (message: ToastInput) => {
       const id = Date.now() + Math.random()
       setToasts((current) => [...current, { ...message, id }])
-      timers.current.push(window.setTimeout(() => dismiss(id), 3800))
+      timers.current.push(window.setTimeout(() => dismiss(id), message.duration ?? 3800))
     },
     [dismiss],
   )
