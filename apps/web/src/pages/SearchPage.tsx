@@ -8,7 +8,6 @@ import {
   MapPin,
   Search,
   SlidersHorizontal,
-  Sparkles,
   X,
 } from 'lucide-react'
 import { ListingCard } from '../components/market/ListingCard'
