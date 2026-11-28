@@ -159,11 +159,9 @@ function PublishPage({ listingId, initialKind = 'product' }: { listingId?: strin
         <button type="button" onClick={() => void navigate({ to: '/tableau-de-bord' })} className="inline-flex items-center gap-2 text-xs font-semibold text-ink-muted hover:text-brand-700">
           <ArrowLeft className="h-3.5 w-3.5" /> Tableau de bord
         </button>
-        <p className="mt-5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-brand-600">Publication</p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{listingId ? 'Modifier l’annonce' : 'Publier une annonce'}</h1>
-        <p className="mt-2 max-w-xl text-sm text-ink-muted">Quelques champs seulement. Votre annonce est visible immédiatement par la communauté.</p>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{listingId ? 'Modifier l’annonce' : 'Publier une annonce'}</h1>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-5">
             <section className="rounded-3xl border border-line bg-white p-5 shadow-soft lg:p-7">
               <h2 className="text-sm font-bold text-ink">1. Que souhaitez-vous publier ?</h2>
