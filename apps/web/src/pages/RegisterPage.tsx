@@ -35,6 +35,9 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [generalError, setGeneralError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [acceptManagement, setAcceptManagement] = useState(false)
 
   const errorOf = (field: string) => fieldErrors[field]?.[0]
 
@@ -59,6 +62,9 @@ export default function RegisterPage() {
         password,
         ...location,
         ...(role === 'MERCHANT' ? { storeName, description } : {}),
+        acceptPrivacy,
+        acceptTerms,
+        acceptManagement,
       }, paymentProof ?? undefined)
       showToast({
         tone: 'success',
@@ -196,6 +202,15 @@ export default function RegisterPage() {
             </div>
           </div>
         )}
+
+        <section className="space-y-3 rounded-2xl border border-line bg-canvas p-4" aria-labelledby="legal-consent-title">
+          <h2 id="legal-consent-title" className="text-sm font-extrabold text-ink">Documents à lire et accepter</h2>
+          <p className="text-xs leading-relaxed text-ink-muted">L’inscription nécessite votre accord explicite pour chacun de ces documents. Vous pouvez les consulter avant de cocher les cases.</p>
+          <label className="flex items-start gap-3 text-sm text-ink"><input type="checkbox" checked={acceptPrivacy} onChange={(e) => setAcceptPrivacy(e.target.checked)} required className="mt-1 h-4 w-4 accent-brand-700" /><span>J’ai lu et j’accepte la <a className="font-bold text-brand-700 underline" href="/legal/confidentialite" target="_blank" rel="noreferrer">politique de confidentialité</a>.</span></label>
+          <label className="flex items-start gap-3 text-sm text-ink"><input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} required className="mt-1 h-4 w-4 accent-brand-700" /><span>J’ai lu et j’accepte les <a className="font-bold text-brand-700 underline" href="/legal/utilisation" target="_blank" rel="noreferrer">règles d’utilisation</a>.</span></label>
+          <label className="flex items-start gap-3 text-sm text-ink"><input type="checkbox" checked={acceptManagement} onChange={(e) => setAcceptManagement(e.target.checked)} required className="mt-1 h-4 w-4 accent-brand-700" /><span>J’ai lu et j’accepte la <a className="font-bold text-brand-700 underline" href="/legal/gestion" target="_blank" rel="noreferrer">politique de gestion et d’autorisation</a>.</span></label>
+          {(!acceptPrivacy || !acceptTerms || !acceptManagement) && <p className="text-xs font-semibold text-rose-700">Les trois accords sont obligatoires pour créer le compte.</p>}
+        </section>
 
         <Button type="submit" size="lg" fullWidth loading={loading} iconRight={<ArrowRight className="h-4 w-4" />}>
           Créer mon compte
