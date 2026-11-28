@@ -25,7 +25,7 @@ const frontendUrls = [...new Set([
 ].map((value) => value.trim()).filter(Boolean).map((value) => {
   try { return new URL(value).origin } catch { return null }
 }).filter((value): value is string => value !== null))]
-const secureCookies = process.env.NODE_ENV === 'production' || frontendUrl.startsWith('https://')
+const secureCookies = process.env.NODE_ENV === 'production' || frontendUrls.some((origin) => origin.startsWith('https://'))
 
 export const config = {
   databaseUrl: process.env.DATABASE_URL ?? '',
