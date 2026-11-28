@@ -31,7 +31,7 @@ export async function buildApp() {
   mkdirSync(config.uploadsDir, { recursive: true })
 
   await app.register(cookie)
-  await app.register(cors, { origin: config.frontendUrl, credentials: true })
+  await app.register(cors, { origin: config.frontendUrls, credentials: true })
   await app.register(rateLimit, {
     global: true,
     max: 1000,
@@ -107,7 +107,7 @@ export async function buildApp() {
       throw new HttpError(404, 'NOT_FOUND', 'Ressource introuvable.')
     }
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return
-    if (request.headers.origin !== config.frontendUrl) {
+    if (!request.headers.origin || !config.frontendUrls.includes(request.headers.origin)) {
       throw new HttpError(403, 'ORIGIN_FORBIDDEN', 'Origine de la requête non autorisée.')
     }
   })
