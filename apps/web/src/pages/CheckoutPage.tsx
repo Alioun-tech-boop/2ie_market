@@ -112,15 +112,46 @@ export default function CheckoutPage() {
         deliveryMode: selectedMode,
         meetingPointId: selectedMode === 'MEETUP_POINT' ? meetingPointId : null,
       })
-      await refresh()
+
+      // Certaines anciennes versions de l'API peuvent répondre avec un DTO incomplet.
+      // Ne jamais transmettre une référence undefined au routeur (qui plante sur .replace()).
+      let reference =
+        typeof result?.group?.reference === 'string' ? result.group.reference.trim() : ''
+
+      if (!reference) {
+        // La commande est déjà créée : récupérer la référence depuis l'historique client.
+        try {
+          const history = await ordersApi.list()
+          const latest = [...(history.groups ?? [])]
+            .filter((group) => typeof group?.reference === 'string' && group.reference.trim())
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+          reference = latest?.reference?.trim() ?? ''
+        } catch {
+          // Le message de secours ci-dessous évite de prétendre que la commande a échoué.
+        }
+      }
+
+      if (!reference) {
+        showToast({
+          tone: 'info',
+          title: 'Commande enregistrée',
+          description: 'Votre commande a été créée, mais sa référence de suivi est momentanément indisponible. Retrouvez-la dans « Mes commandes ».',
+        })
+        await navigate({ to: '/commandes' })
+        return
+      }
+
       showToast({
         tone: 'success',
         title: 'Commande enregistrée',
-        description: `Référence ${result.group.reference} — le vendeur reçoit une notification et peut gérer la commande depuis son espace.`,
+        description: `Référence ${reference} — le vendeur reçoit une notification et peut gérer la commande depuis son espace.`,
       })
+
+      // La mise à jour du panier est secondaire : elle ne doit pas empêcher l'accès au suivi.
+      void refresh().catch(() => undefined)
       await navigate({
         to: '/commande/$reference',
-        params: { reference: result.group.reference },
+        params: { reference },
         search: { created: true },
       })
     } catch (cause) {
