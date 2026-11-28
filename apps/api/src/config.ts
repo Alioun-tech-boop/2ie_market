@@ -14,6 +14,18 @@ if (!jwtSecret || jwtSecret.length < 32) {
 }
 
 const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+// Plusieurs domaines peuvent servir la même application (nouveau site Netlify,
+// ancien domaine conservé). Normaliser en origines exactes pour garder la
+// protection CSRF sans bloquer les connexions après un changement de domaine.
+const frontendUrls = [...new Set([
+  frontendUrl,
+  frontendUrls,
+  ...(process.env.FRONTEND_URLS ?? '').split(','),
+  'https://2ie-market-app.netlify.app',
+  'https://2ie-market-bf.netlify.app',
+].map((value) => value.trim()).filter(Boolean).map((value) => {
+  try { return new URL(value).origin } catch { return null }
+}).filter((value): value is string => value !== null))]
 const secureCookies = process.env.NODE_ENV === 'production' || frontendUrl.startsWith('https://')
 
 export const config = {
