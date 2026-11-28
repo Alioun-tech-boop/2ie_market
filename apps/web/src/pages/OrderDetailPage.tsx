@@ -50,8 +50,25 @@ export default function OrderDetailPage() {
     setLoading(true)
     setNotFound(false)
     try {
+      if (typeof reference !== 'string' || !reference.trim()) {
+        setNotFound(true)
+        return
+      }
       const result = await ordersApi.getOrder(reference)
-      setGroup(result.group)
+      const candidate = result?.group
+      // Un ancien déploiement API peut renvoyer un objet incomplet :
+      // traiter cela comme une réponse invalide plutôt que de faire planter React.
+      if (
+        !candidate ||
+        typeof candidate.reference !== 'string' ||
+        !candidate.reference.trim() ||
+        !candidate.client ||
+        !Array.isArray(candidate.orders)
+      ) {
+        setNotFound(true)
+        return
+      }
+      setGroup(candidate)
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 404) setNotFound(true)
       else showToast({ tone: 'info', title: 'Commande indisponible', description: 'Réessayez dans un instant.' })
