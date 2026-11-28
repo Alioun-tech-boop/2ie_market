@@ -131,6 +131,10 @@ model User {
   store           Store?
   status          UserStatus     @default(ACTIVE)
   emailVerifiedAt DateTime?      @map("email_verified_at")
+  privacyAcceptedAt DateTime?    @map("privacy_accepted_at")
+  termsAcceptedAt DateTime?      @map("terms_accepted_at")
+  managementAcceptedAt DateTime? @map("management_accepted_at")
+  policyVersion String           @default("2026-11-28") @map("policy_version") @db.VarChar(20)
   refreshTokens   RefreshToken[]
   cartItems       CartItem[]
   cartNotes       CartNote[]
