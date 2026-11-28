@@ -17,8 +17,11 @@ export type Condition = (typeof CONDITIONS)[number]
 export type Availability = (typeof AVAILABILITIES)[number]
 export type SearchSort = (typeof SEARCH_SORTS)[number]
 
-export function slugify(value: string): string {
-  return value
+export function slugify(value: unknown): string {
+  // Les données historiques ou les réponses API peuvent contenir une valeur absente.
+  // Normaliser ici évite qu'un undefined ne fasse planter .normalize()/.replace().
+  const text = typeof value === 'string' ? value : value == null ? '' : String(value)
+  return text
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -28,14 +31,16 @@ export function slugify(value: string): string {
 }
 
 /** B1.87 R0 = bâtiment 1, chambre 87, rez-de-chaussée (RG-02). */
-export function generateReference(buildingNumber: string, roomNumber: string, floor: number): string {
-  const building = buildingNumber.trim().toUpperCase()
-  const room = roomNumber.trim()
-  return `B${building}.${room} R${floor}`
+export function generateReference(buildingNumber: unknown, roomNumber: unknown, floor: unknown): string {
+  const building = typeof buildingNumber === 'string' ? buildingNumber.trim().toUpperCase() : ''
+  const room = typeof roomNumber === 'string' ? roomNumber.trim() : ''
+  const safeFloor = typeof floor === 'number' && Number.isFinite(floor) ? floor : 0
+  return `B${building}.${room} R${safeFloor}`
 }
 
 /** Numéro saisi → E.164. Accepte +226…, 0… et les formats locaux burkinabè. */
-export function toE164(input: string, defaultCountryCode = '226'): string | null {
+export function toE164(input: unknown, defaultCountryCode = '226'): string | null {
+  if (typeof input !== 'string') return null
   const cleaned = input.replace(/[\s\-().]/g, '')
   if (/^\+\d{8,15}$/.test(cleaned)) return cleaned
   if (/^0\d{8,9}$/.test(cleaned)) return `+${defaultCountryCode}${cleaned.slice(1)}`
