@@ -224,6 +224,8 @@ export const adminApi = {
 
   user: (id: string) => api<{ user: AdminUserDetail }>(`/admin/users/${encodeURIComponent(id)}`),
 
+  deleteUser: (id: string) => api<{ ok: true; anonymized: true }>(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
   setUserStatus: (id: string, status: UserStatus) =>
     api<{ user: { id: string; status: UserStatus } }>(`/admin/users/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
