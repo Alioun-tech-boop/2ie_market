@@ -30,28 +30,40 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const seenIds = useRef(new Set<string>())
+  const requestVersion = useRef(0)
 
   const refresh = useCallback(async () => {
+    const version = ++requestVersion.current
+    if (status !== 'authenticated') {
+      setNotifications([])
+      seenIds.current.clear()
+      setUnreadCount(0)
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     try {
       const data = await notificationsApi.list()
+      if (version !== requestVersion.current) return
       setNotifications(data.notifications)
       seenIds.current = new Set(data.notifications.map((item) => item.id))
       setUnreadCount(data.unreadCount)
     } catch {
       // Une perte réseau ne doit jamais casser la navigation.
     } finally {
-      setLoading(false)
+      if (version === requestVersion.current) setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
     if (status !== 'authenticated') {
+      requestVersion.current += 1
       setNotifications([])
       seenIds.current.clear()
       setUnreadCount(0)
+      setLoading(false)
       return
     }
-    setLoading(true)
     void refresh()
   }, [status, refresh])
 
