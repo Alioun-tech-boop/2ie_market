@@ -119,8 +119,7 @@ export default function CartPage() {
 
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">Votre sélection</p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-900">Mon panier</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-brand-900">Mon panier</h1>
             <p className="mt-2 text-sm text-ink-muted">
               {itemCount} article{itemCount > 1 ? 's' : ''} · regroupé{itemCount > 1 ? 's' : ''} par boutique
             </p>
