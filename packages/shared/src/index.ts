@@ -94,6 +94,9 @@ export const registerSchema = z
     ...locationSchema.shape,
     storeName: z.string().trim().min(2).max(120).optional(),
     description: z.string().trim().min(20).max(2000).optional(),
+    acceptPrivacy: z.literal(true, { errorMap: () => ({ message: 'Vous devez accepter la politique de confidentialité.' }) }),
+    acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Vous devez accepter les règles d’utilisation.' }) }),
+    acceptManagement: z.literal(true, { errorMap: () => ({ message: 'Vous devez accepter la politique de gestion et d’autorisation.' }) }),
   })
   .superRefine((data, ctx) => {
     if (data.role !== 'MERCHANT') return
