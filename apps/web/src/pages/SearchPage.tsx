@@ -188,22 +188,11 @@ export default function SearchPage() {
 
   return (
     <main className="bg-canvas pb-16">
-      <div className="container-premium pt-8 lg:pt-12">
+      <div className="container-premium pt-3 lg:pt-5">
         <header className="max-w-3xl">
-          <p className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent-600">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            Découvrir
-          </p>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-brand-900 sm:text-4xl">
-            Trouvez ce qu'il vous faut
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">
-            Parcourez les annonces de la communauté 2ie, affinez par catégorie, site ou prix et trouvez la perle rare près de chez vous.
-          </p>
-
           <form
             role="search"
-            className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-white px-4 shadow-card transition-shadow focus-within:border-brand-300 focus-within:shadow-lift"
+            className="mt-0 flex items-center gap-3 rounded-2xl border border-line bg-white px-4 shadow-card transition-shadow focus-within:border-brand-300 focus-within:shadow-lift"
             onSubmit={(event) => {
               event.preventDefault()
               navigatedQuery.current = queryInput
@@ -235,7 +224,7 @@ export default function SearchPage() {
           </form>
         </header>
 
-        <nav aria-label="Catégories" className="scrollbar-none -mx-4 mt-7 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        <nav aria-label="Catégories" className="scrollbar-none -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <button
             type="button"
             onClick={() => setFilter('category', '')}
@@ -273,7 +262,7 @@ export default function SearchPage() {
           ))}
         </nav>
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <p className="text-sm font-semibold text-ink" aria-live="polite">
             {total} annonce(s) trouvée(s)
           </p>
