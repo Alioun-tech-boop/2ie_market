@@ -153,6 +153,9 @@ export interface RegisterPayload {
   floor: number
   storeName?: string
   description?: string
+  acceptPrivacy: boolean
+  acceptTerms: boolean
+  acceptManagement: boolean
 }
 
 export interface LoginPayload {
