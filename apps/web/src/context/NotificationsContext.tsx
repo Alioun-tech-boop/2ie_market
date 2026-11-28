@@ -31,6 +31,41 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const seenIds = useRef(new Set<string>())
   const requestVersion = useRef(0)
+  const audioContext = useRef<AudioContext | null>(null)
+
+  useEffect(() => {
+    const unlock = () => {
+      if (audioContext.current) return
+      try {
+        const AudioContextCtor = window.AudioContext
+        if (!AudioContextCtor) return
+        audioContext.current = new AudioContextCtor()
+        void audioContext.current.resume()
+      } catch { /* Le navigateur peut bloquer le son ; l’alerte visuelle reste active. */ }
+    }
+    window.addEventListener('pointerdown', unlock, { once: true })
+    window.addEventListener('keydown', unlock, { once: true })
+    return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
+  }, [])
+
+  const playOrderAlert = useCallback(() => {
+    const context = audioContext.current
+    if (!context || context.state !== 'running') return
+    try {
+      const now = context.currentTime
+      ;[0, 0.22, 0.44].forEach((offset) => {
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        oscillator.type = 'sine'
+        oscillator.frequency.value = 880
+        gain.gain.setValueAtTime(0.0001, now + offset)
+        gain.gain.exponentialRampToValueAtTime(0.2, now + offset + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.16)
+        oscillator.connect(gain); gain.connect(context.destination)
+        oscillator.start(now + offset); oscillator.stop(now + offset + 0.17)
+      })
+    } catch { /* Son facultatif. */ }
+  }, [])
 
   const refresh = useCallback(async () => {
     const version = ++requestVersion.current
@@ -78,7 +113,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         seenIds.current.add(incoming.id)
         setNotifications((current) => [incoming, ...current].slice(0, 50))
         if (!incoming.read) setUnreadCount((count) => count + 1)
-        if (incoming.type !== 'ORDER_PLACED') {
+        if (incoming.type === 'NEW_ORDER') {
+          playOrderAlert()
+          showToast({ title: `🔔 NOUVELLE COMMANDE · ${incoming.title}`, description: incoming.message, tone: 'success', duration: 12000 })
+        } else if (incoming.type !== 'ORDER_PLACED') {
           showToast({ title: incoming.title, description: incoming.message, tone: 'info' })
         }
       } catch {
@@ -105,7 +143,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       source.close()
       window.clearInterval(fallback)
     }
-  }, [status, refresh, showToast])
+  }, [status, refresh, showToast, playOrderAlert])
 
   const markRead = useCallback(async (id: string) => {
     try {
