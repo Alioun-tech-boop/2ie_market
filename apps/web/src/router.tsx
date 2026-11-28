@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { RequireAuth } from './components/auth/RequireAuth'
+import { GuestOnly } from './components/auth/GuestOnly'
 import { RootLayout } from './components/layout/RootLayout'
 import AdminPage from './pages/AdminPage'
 import CartPage from './pages/CartPage'
@@ -33,8 +34,8 @@ const MERCHANTS: Role[] = ['MERCHANT']
 const rootRoute = createRootRoute({ component: RootLayout })
 
 const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
-const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/connexion', component: LoginPage })
-const registerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/inscription', component: RegisterPage })
+const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/connexion', component: () => <GuestOnly><LoginPage /></GuestOnly> })
+const registerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/inscription', component: () => <GuestOnly><RegisterPage /></GuestOnly> })
 const legalRoute = createRoute({ getParentRoute: () => rootRoute, path: '/legal/$document', component: LegalPage })
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
