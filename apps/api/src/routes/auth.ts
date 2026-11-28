@@ -162,6 +162,10 @@ export async function authRoutes(app: FastifyInstance) {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneE164: phone,
+        privacyAcceptedAt: new Date(),
+        termsAcceptedAt: new Date(),
+        managementAcceptedAt: new Date(),
+        policyVersion: '2026-11-28',
         location: { create: locationData },
         store:
           data.role === 'MERCHANT'
