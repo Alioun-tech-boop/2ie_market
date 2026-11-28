@@ -570,6 +570,25 @@ export async function adminRoutes(app: FastifyInstance) {
     return { user: toAdminUserDetail(user, listingCount, reportsReceived) }
   })
 
+  app.delete('/users/:id', adminWriteGuard, async (request) => {
+    const { id } = idParamSchema.parse(request.params)
+    if (id === request.user!.id) throw new HttpError(400, 'SELF_DELETE', 'Vous ne pouvez pas supprimer votre propre compte administrateur.')
+    const target = await prisma.user.findUnique({ where: { id }, include: { store: true } })
+    if (!target) throw new HttpError(404, 'USER_NOT_FOUND', 'Utilisateur introuvable.')
+    if (target.role === 'ADMIN') throw new HttpError(403, 'ADMIN_DELETE_PROTECTED', 'Un compte administrateur ne peut pas être supprimé depuis cette interface.')
+    const now = new Date()
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id }, data: {
+        firstName: 'Compte', lastName: 'supprimé', email: `deleted+${id}@deleted.2ie-market.invalid`,
+        phoneE164: '+226000000000', passwordHash: 'ACCOUNT_DELETED_NO_LOGIN', status: 'SUSPENDED', profilePhotoUrl: null,
+      } })
+      await tx.refreshToken.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: now } })
+      if (target.store) await tx.store.update({ where: { id: target.store.id }, data: { isActive: false } })
+      await tx.auditLog.create({ data: { actorId: request.user!.id, action: 'USER_ANONYMIZED', targetType: 'User', targetId: id, meta: { previousRole: target.role, email: target.email } } })
+    })
+    return { ok: true, anonymized: true }
+  })
+
   app.patch('/users/:id/status', adminWriteGuard, async (request) => {
     const { id } = idParamSchema.parse(request.params)
     const { status } = statusSchema.parse(request.body)
