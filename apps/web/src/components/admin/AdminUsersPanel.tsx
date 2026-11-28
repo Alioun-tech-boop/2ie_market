@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Search, ShieldCheck, UserRound, X } from 'lucide-react'
+import { Search, ShieldCheck, UserRound, X, Trash2 } from 'lucide-react'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
@@ -35,12 +35,14 @@ function UserDetailCard({
   onClose,
   onStatus,
   onRole,
+  onDelete,
 }: {
   user: AdminUserDetail
   busy: boolean
   onClose: () => void
   onStatus: (user: AdminUserDetail) => void
   onRole: (user: AdminUserDetail, role: 'CLIENT' | 'MERCHANT') => void
+  onDelete: (user: AdminUserDetail) => void
 }) {
   return (
     <Card className="border-brand-100 p-5">
@@ -109,6 +111,7 @@ function UserDetailCard({
           <option value="MERCHANT">Commerçant</option>
           {user.role === 'ADMIN' && <option value="ADMIN">Administrateur</option>}
         </select>
+        <Button size="sm" variant="outline" disabled={busy || user.role === 'ADMIN'} iconLeft={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(user)}>Supprimer</Button>
         <Button
           size="sm"
           variant={user.status === 'ACTIVE' ? 'outline' : 'secondary'}
@@ -209,6 +212,24 @@ export function AdminUsersPanel() {
     }
   }
 
+  async function deleteUser(user: AdminUserDetail) {
+    if (user.role === 'ADMIN') return
+    const confirmation = window.prompt(`Cette action anonymise définitivement le compte de ${user.firstName} ${user.lastName} tout en conservant les commandes et justificatifs nécessaires à l’historique. Tapez SUPPRIMER pour confirmer.`)
+    if (confirmation !== 'SUPPRIMER') return
+    setBusy(user.id)
+    try {
+      await adminApi.deleteUser(user.id)
+      setUsers((current) => current.filter((item) => item.id !== user.id))
+      setSelected((current) => current?.id === user.id ? null : current)
+      void load()
+      showToast({ tone: 'success', title: 'Compte supprimé', description: 'Les données personnelles du compte ont été anonymisées.' })
+    } catch (cause) {
+      showToast({ tone: 'accent', title: 'Suppression impossible', description: errorMessage(cause) })
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function changeRole(user: AdminUserDetail, next: 'CLIENT' | 'MERCHANT') {
     if (next === user.role) return
     if (!window.confirm(`Attribuer le rôle « ${roleLabel(next)} » à ${user.firstName} ${user.lastName} ?`)) return
@@ -272,6 +293,7 @@ export function AdminUsersPanel() {
           onClose={() => setSelected(null)}
           onStatus={(user) => void changeStatus(user)}
           onRole={(user, next) => void changeRole(user, next)}
+          onDelete={(user) => void deleteUser(user)}
         />
       )}
 
