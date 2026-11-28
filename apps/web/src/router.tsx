@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
 import SearchPage from './pages/SearchPage'
 import StorePage from './pages/StorePage'
+import LegalPage from './pages/LegalPage'
 import type { Role } from './lib/auth'
 import {
   AVAILABILITY_FILTERS,
@@ -34,6 +35,7 @@ const rootRoute = createRootRoute({ component: RootLayout })
 const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
 const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/connexion', component: LoginPage })
 const registerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/inscription', component: RegisterPage })
+const legalRoute = createRoute({ getParentRoute: () => rootRoute, path: '/legal/$document', component: LegalPage })
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profil',
@@ -186,6 +188,7 @@ export const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  legalRoute,
   profileRoute,
   adminRoute,
   storeRoute,
